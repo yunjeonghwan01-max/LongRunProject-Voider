@@ -7,14 +7,29 @@ const RANGED_ATTACK_SCENE := preload("res://systems/combat/ranged_attack.tscn")
 
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
+@export var max_health: int = 3
+
+var health: int
 
 @onready var _attack_timer: Timer = $attack_timer
 
 
 func _ready() -> void:
+	health = max_health
 	_attack_timer.wait_time = attack_interval
 	_attack_timer.timeout.connect(_on_attack_timer_timeout)
 	_attack_timer.start()
+
+
+## 플레이어 근접 공격 HitBox가 hurtbox에 닿았을 때 호출된다.
+## 별도의 체력 시스템이 없으므로 최소한의 health 감소 + 로그만 처리한다.
+func take_damage(amount: int, _source: Node) -> void:
+	health -= amount
+	print("[Enemy] %s took %d damage (health=%d/%d)" % [name, amount, health, max_health])
+
+	if health <= 0:
+		print("[Enemy] %s defeated" % name)
+		queue_free()
 
 
 func _on_attack_timer_timeout() -> void:

@@ -1,15 +1,29 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8x2p7q4mvn6h"]
+[gd_scene load_steps=4 format=3 uid="uid://c8x2p7q4mvn6h"]
 
 [ext_resource type="Script" path="res://systems/player/player.gd" id="1_player"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 48)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_attack_hitbox"]
+size = Vector2(28, 20)
+
 [node name="player" type="CharacterBody2D"]
 script = ExtResource("1_player")
 
 [node name="collision_shape" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_body")
+
+[node name="attack_hitbox" type="Area2D" parent="."]
+position = Vector2(28, 0)
+collision_layer = 4
+collision_mask = 8
+monitoring = false
+monitorable = false
+
+[node name="collision_shape" type="CollisionShape2D" parent="attack_hitbox"]
+shape = SubResource("RectangleShape2D_attack_hitbox")
+disabled = true
 
 [node name="visual" type="Node2D" parent="."]
 

@@ -6,7 +6,7 @@ extends Node2D
 
 @export var attack_type: String = "generic"
 @export var counterable: bool = false
-@export var counter_window_duration: float = 0.25
+@export var counter_window_duration: float = 0.4
 
 var attacker: Node = null
 var counter_window_open: bool = false
