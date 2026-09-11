@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqk3m8x1lchw2"]
+
+[ext_resource type="Script" path="res://prototypes/combat_test/test_enemy.gd" id="1_enemy"]
+
+[node name="test_enemy" type="Node2D"]
+script = ExtResource("1_enemy")
+
+[node name="body" type="Polygon2D" parent="."]
+color = Color(0.8, 0.15, 0.15, 1)
+polygon = PackedVector2Array(-20, -30, 20, -30, 20, 30, -20, 30)
+
+[node name="attack_timer" type="Timer" parent="."]
+wait_time = 2.5
