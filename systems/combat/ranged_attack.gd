@@ -12,6 +12,10 @@ extends "res://systems/combat/attack.gd"
 @export var hit_distance: float = 20.0
 @export var los_collision_mask: int = 0b10  # layer 2 = walls/장애물 전용
 
+@export_group("Pre-Signal")
+@export var pre_signal_duration: float = 0.35
+@export var pre_signal_dark_color: Color = Color(0.35, 0.35, 0.35, 1)
+
 var facing_direction: Vector2 = Vector2.LEFT
 var target_player: Node2D = null
 
@@ -23,6 +27,7 @@ var _lifetime_elapsed: float = 0.0
 @onready var _visual: Node2D = $visual
 
 var _glow_tween: Tween = null
+var _pre_signal_tween: Tween = null
 
 
 func _ready() -> void:
@@ -38,7 +43,7 @@ func _ready() -> void:
 	])
 
 	if _has_valid_counter_opportunity:
-		_open_counter_window()
+		_start_pre_signal()
 	else:
 		_begin_flight()
 
@@ -58,6 +63,19 @@ func _check_line_of_sight_valid() -> bool:
 	query.collision_mask = los_collision_mask
 	var result := space_state.intersect_ray(query)
 	return result.is_empty()
+
+
+## counter window가 열리기 전, 어두운 기본 상태에서 서서히 밝아지며 다가올 타이밍을 예고한다.
+func _start_pre_signal() -> void:
+	if not _visual:
+		_open_counter_window()
+		return
+
+	_visual.modulate = pre_signal_dark_color
+
+	_pre_signal_tween = create_tween()
+	_pre_signal_tween.tween_property(_visual, "modulate", Color(1, 1, 1, 1), pre_signal_duration).set_trans(Tween.TRANS_SINE)
+	_pre_signal_tween.finished.connect(_open_counter_window)
 
 
 func _open_counter_window() -> void:
