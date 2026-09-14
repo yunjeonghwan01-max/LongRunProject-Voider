@@ -17,7 +17,12 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 ### 플레이어 (`systems/player/player.gd`)
 - 기본 이동/점프/중력 (`speed`, `jump_velocity`, `gravity`)
 - 바라보는 방향에 따라 visual/attack_hitbox 좌우 반전
-- 근접 기본 공격: startup(0.08s) → active(0.12s) → recovery(0.25s) 3단계 상태 머신
+- 대쉬 (`player_dash` 액션, 기본 키 Shift)
+  - 현재 `facing_direction`으로 즉시 `velocity.x = dash_speed`를 설정하는 순수 수평 이동
+  - `dash_speed`(900) / `dash_duration`(0.15s) / `dash_cooldown`(0.5s) 모두 export 변수로 분리
+  - 대쉬 중에는 일반 이동/감속 로직을 건너뛰어 재발동 및 입력 간섭을 막고, 종료 시 그대로 일반 이동 상태로 복귀
+  - 무적판정 / 공격 캔슬 / 공중 대쉬 / 스태미나는 의도적으로 미구현 (v0.1은 단순 이동만)
+- 근접 기본 공격 (`player_attack` 액션, 기존 `attack`에서 개명): startup(0.08s) → active(0.12s) → recovery(0.25s) 3단계 상태 머신
   - 공격 중에도 카운터 입력은 항상 허용 (공격과 카운터는 서로 독립적으로 동작)
   - 공격 hitbox는 active 구간에서만 monitoring, 동일 active 구간 내 동일 대상 중복 타격 방지
 - 카운터 입력 처리 (`player_counter` 액션)
@@ -47,6 +52,17 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - 이동/AI 없음. 일정 주기(`attack_interval`, 기본 2.5s)로 RangedAttack만 발동하는
   카운터 시스템 검증 전용 최소 스텁. 체력/피격 로그만 존재.
 
+### 전투 테스트용 TileMap 플랫폼 환경 (`_scenes/main.tscn`, `_assets/sprites/`)
+- 기존 고정 `floor`(StaticBody2D) 노드를 제거하고 `game/platform_tilemap`(TileMapLayer)으로 교체.
+  Godot 에디터의 타일 페인트 도구로 바닥/벽/발판을 자유롭게 다시 설계할 수 있음.
+- `_assets/sprites/combat_test_tileset.tres`: 32x32 임시 그래픽(`tile_placeholder.png`) 기반
+  TileSet. `physics_layer_0/collision_layer|mask = 1`로 플레이어 충돌 레이어(1/1)와 매칭.
+- 기본으로 깔아둔 레이아웃 (32px 그리드, 바닥 top y=640): 전체 폭 2타일 두께 바닥,
+  좌우 경계 벽, 점프로 닿을 수 있는 높이(바닥 위 64px, 점프 최대 높이 ~80px 이내)의
+  발판 2개. 플레이어/test_enemy 시작 위치도 새 바닥 높이에 맞춰 y=616으로 조정.
+- 구조는 단순하게 유지(TileMapLayer 1개 + TileSet 1개)했고, 적 AI/스킬/신규 전투 시스템은
+  이번 작업 범위에 포함하지 않음.
+
 ## 플레이테스트 결과 (카운터 윈도우 튜닝)
 - **counter_window_duration = 0.25s**: 근접 공격과 카운터 입력을 병행해야 하는 상황에서
   지나치게 어려움 (반응 여유가 거의 없어 실패율이 높았음)
@@ -59,12 +75,11 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
+- 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현
 - 다음 우선순위:
-  1. Godot 에디터에서 직접 설계할 수 있는 전투 테스트용 TileMap/플랫폼 환경 구축
-  2. 플레이어 대쉬 구현
-  3. 역할이 분명한 플레이어 스킬 1개 구현
-  4. 강한 필드몹 수준의 적 AI/스탯 및 복수 행동 패턴 구현
-  5. 해당 행동 패턴 중 하나로 카유공을 간헐적으로 섞어 실제 전투 중 카운터 체감 검증
+  1. 역할이 분명한 플레이어 스킬 1개 구현
+  2. 강한 필드몹 수준의 적 AI/스탯 및 복수 행동 패턴 구현
+  3. 해당 행동 패턴 중 하나로 카유공을 간헐적으로 섞어 실제 전투 중 카운터 체감 검증
 - `CounterResult`를 실제로 소비하는 시스템(궁극기 게이지 등)이 아직 없음 — 필요 시 연결
 - 근접 공격에는 아직 counterable 개념이 없음 (원거리만 카운터 가능)
 - 적 AI/이동/복수 공격 패턴은 아직 미구현 (`test_enemy`는 검증용 스텁)
