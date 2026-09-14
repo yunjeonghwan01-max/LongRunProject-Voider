@@ -27,10 +27,17 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - `counter_result.gd` (`CounterResult`): 카운터 성공/실패 결과 데이터 (attacker, attack_type,
   input_time_msec, success) — 궁극기 게이지 등 후속 시스템이 구독할 수 있도록 설계했으나
   **현재 어떤 시스템에도 연결되어 있지 않음** (미연결 상태로 존재)
-- `ranged_attack.gd` (`RangedAttack : Attack`): 원거리 카운터 가능 공격 프로토타입
+- `ranged_attack.gd` (`RangedAttack : Attack`): 원거리 카운터 가능 공격 프로토타입 ("카유공")
   - 발동 시 방향(dot product) + 시야(raycast, layer 2 장애물) 검사로 카운터 후보 여부 결정
-  - 후보면 counter window를 열고(오버브라이트 glow 이펙트로 강조) 제자리 대기,
-    카운터 안 되면 window 종료 후 플레이어를 향해 직선 비행하여 히트
+  - 후보면 Pre-Signal → counter window 순으로 진행, 카운터 안 되면 window 종료 후
+    플레이어를 향해 직선 비행하여 히트
+  - **Pre-Signal**: counter window가 열리기 전 예고 구간(`pre_signal_duration`, 기본 0.35s).
+    어두운 기본 상태(`pre_signal_dark_color`)에서 흰색(정상 밝기)까지 서서히 밝아지며,
+    끝나는 즉시 counter window로 전환됨
+  - **Counter Window**: 기존 오버브라이트 glow(최대 modulate 3.0/2.6, 확대/축소 반복)로
+    Pre-Signal보다 훨씬 강렬하게 발광 — "지금이 카운터 타이밍"임을 명확히 표시
+  - window 종료 시 밝기/스케일 원상 복구 (`_stop_window_glow`)
+  - 카운터 판정 로직 자체는 이번 작업에서 변경하지 않음 (순수 시각 효과만 추가)
 
 ### 테스트 적 (`prototypes/combat_test/test_enemy.gd`)
 - 이동/AI 없음. 일정 주기(`attack_interval`, 기본 2.5s)로 RangedAttack만 발동하는
@@ -49,3 +56,5 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - `CounterResult`를 실제로 소비하는 시스템(궁극기 게이지 등)이 아직 없음 — 필요 시 연결
 - 근접 공격에는 아직 counterable 개념이 없음 (원거리만 카운터 가능)
 - 적 AI/이동/복수 공격 패턴은 아직 미구현 (`test_enemy`는 검증용 스텁)
+- Pre-Signal 지속시간(0.35s)과 카운터 윈도우(0.4s)를 합친 전체 리드타임이 실제 플레이에서
+  체감상 적절한지 아직 미검증 — 다음 플레이테스트에서 확인 필요
