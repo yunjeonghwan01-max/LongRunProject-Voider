@@ -8,6 +8,11 @@ extends CharacterBody2D
 @export var gravity: float = 1100.0
 @export var counter_recovery_duration: float = 0.3
 
+@export_group("Dash")
+@export var dash_speed: float = 900.0
+@export var dash_duration: float = 0.15
+@export var dash_cooldown: float = 0.5
+
 @export_group("Basic Attack")
 @export var attack_startup_duration: float = 0.08
 @export var attack_active_duration: float = 0.12
@@ -17,6 +22,9 @@ extends CharacterBody2D
 @export var attack_move_speed_scale: float = 1.0
 
 var facing_direction: int = 1
+
+var is_dashing: bool = false
+var can_dash: bool = true
 
 var active_counter_target: Attack = null
 var is_in_counter_recovery: bool = false
@@ -46,17 +54,21 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("player_jump") and is_on_floor():
 		velocity.y = jump_velocity
 
-	var direction := Input.get_axis("player_move_left", "player_move_right")
-	var move_speed := speed
-	if is_attacking:
-		move_speed *= attack_move_speed_scale
-	if direction != 0.0:
-		velocity.x = direction * move_speed
-		_set_facing_direction(int(sign(direction)))
-	else:
-		velocity.x = move_toward(velocity.x, 0.0, move_speed)
+	if not is_dashing:
+		var direction := Input.get_axis("player_move_left", "player_move_right")
+		var move_speed := speed
+		if is_attacking:
+			move_speed *= attack_move_speed_scale
+		if direction != 0.0:
+			velocity.x = direction * move_speed
+			_set_facing_direction(int(sign(direction)))
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, move_speed)
 
 	move_and_slide()
+
+	if Input.is_action_just_pressed("player_dash") and can_dash and not is_dashing:
+		_start_dash()
 
 	if is_in_counter_recovery:
 		_counter_recovery_elapsed += delta
@@ -67,7 +79,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("player_counter"):
 		_try_counter()
 
-	if Input.is_action_just_pressed("attack") and can_attack and not is_attacking:
+	if Input.is_action_just_pressed("player_attack") and can_attack and not is_attacking:
 		_start_attack()
 
 
@@ -123,6 +135,20 @@ func _try_counter() -> void:
 	else:
 		_show_status("MISS", Color(1, 0.3, 0.3, 1))
 		_start_counter_recovery()
+
+
+## 현재 바라보는 방향으로 짧고 빠르게 이동하는 기본 대쉬.
+## 대쉬 중에는 재발동이 불가능하며, 종료 후 쿨다운이 지나야 다시 사용할 수 있다.
+func _start_dash() -> void:
+	is_dashing = true
+	can_dash = false
+	velocity.x = facing_direction * dash_speed
+
+	await get_tree().create_timer(dash_duration).timeout
+	is_dashing = false
+
+	await get_tree().create_timer(dash_cooldown).timeout
+	can_dash = true
 
 
 ## 근접 기본 공격 1타의 startup -> active -> recovery 흐름.
