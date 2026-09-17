@@ -21,6 +21,12 @@ extends CharacterBody2D
 @export var attack_hitbox_offset: float = 28.0
 @export var attack_move_speed_scale: float = 1.0
 
+@export_group("Windblast Skill")
+@export var windblast_scene: PackedScene = preload("res://systems/combat/windblast.tscn")
+@export var windblast_cooldown: float = 1.5
+@export var windblast_spawn_offset: float = 30.0
+@export var windblast_recoil_speed: float = 60.0  ## 발사 시 플레이어에게 가해지는 아주 작은 반동
+
 var facing_direction: int = 1
 
 var is_dashing: bool = false
@@ -34,10 +40,13 @@ var is_attacking: bool = false
 var can_attack: bool = true
 var _attack_hit_targets: Array = []
 
+var can_use_windblast: bool = true
+
 @onready var _visual: Node2D = $visual
 @onready var _status_label: Label = $status_label
 @onready var _attack_hitbox: Area2D = $attack_hitbox
 @onready var _attack_hitbox_shape: CollisionShape2D = $attack_hitbox/collision_shape
+@onready var _camera: CameraShake = $camera
 
 
 func _ready() -> void:
@@ -81,6 +90,9 @@ func _physics_process(delta: float) -> void:
 
 	if Input.is_action_just_pressed("player_attack") and can_attack and not is_attacking:
 		_start_attack()
+
+	if Input.is_action_just_pressed("player_skill1") and can_use_windblast:
+		_fire_windblast()
 
 
 func _set_facing_direction(new_direction: int) -> void:
@@ -200,6 +212,32 @@ func _on_attack_hitbox_area_entered(area: Area2D) -> void:
 
 	if target.has_method("take_damage"):
 		target.take_damage(attack_damage, self)
+
+
+## 바라보는 방향으로 장풍(Windblast)을 발사한다. 발사 직후 1.5초 쿨타임 동안 재사용 불가.
+## 발사 반동으로 플레이어에게도 아주 작은 역방향 임펄스를 준다.
+func _fire_windblast() -> void:
+	can_use_windblast = false
+	print("[Windblast] FIRE facing=%d pos=%s" % [facing_direction, global_position])
+
+	_spawn_windblast()
+	velocity.x -= facing_direction * windblast_recoil_speed
+	if _camera:
+		_camera.shake(2.0, 0.15)
+
+	await get_tree().create_timer(windblast_cooldown).timeout
+	can_use_windblast = true
+
+
+func _spawn_windblast() -> void:
+	if not windblast_scene:
+		return
+
+	var windblast: Windblast = windblast_scene.instantiate()
+	windblast.attacker = self
+	windblast.travel_direction = Vector2(facing_direction, 0.0)
+	windblast.global_position = global_position + Vector2(windblast_spawn_offset * facing_direction, 0.0)
+	get_parent().add_child(windblast)
 
 
 func _start_counter_recovery() -> void:

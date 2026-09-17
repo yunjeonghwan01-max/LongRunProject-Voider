@@ -1,6 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8x2p7q4mvn6h"]
+[gd_scene format=3 uid="uid://c8x2p7q4mvn6h"]
 
-[ext_resource type="Script" path="res://systems/player/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://dvgad34h8wdq3" path="res://systems/player/player.gd" id="1_player"]
+[ext_resource type="Texture2D" uid="uid://dbaaf12auyyyr" path="res://_assets/sprites/Voider Player01.png" id="2_ktl23"]
+[ext_resource type="Script" uid="uid://dkm0cbiaqjeox" path="res://systems/camera/camera_shake.gd" id="3_camera_shake"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 48)
@@ -8,43 +10,59 @@ size = Vector2(24, 48)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_attack_hitbox"]
 size = Vector2(28, 20)
 
-[node name="player" type="CharacterBody2D"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_acav8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_ktl23")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[node name="player" type="CharacterBody2D" unique_id=914845965]
 script = ExtResource("1_player")
 
-[node name="collision_shape" type="CollisionShape2D" parent="."]
+[node name="collision_shape" type="CollisionShape2D" parent="." unique_id=1789582202]
 shape = SubResource("RectangleShape2D_body")
 
-[node name="attack_hitbox" type="Area2D" parent="."]
+[node name="attack_hitbox" type="Area2D" parent="." unique_id=977488697]
 position = Vector2(28, 0)
 collision_layer = 4
 collision_mask = 8
 monitoring = false
 monitorable = false
 
-[node name="collision_shape" type="CollisionShape2D" parent="attack_hitbox"]
+[node name="collision_shape" type="CollisionShape2D" parent="attack_hitbox" unique_id=1294814491]
 shape = SubResource("RectangleShape2D_attack_hitbox")
 disabled = true
 
-[node name="visual" type="Node2D" parent="."]
+[node name="visual" type="Node2D" parent="." unique_id=617349398]
 
-[node name="body" type="Polygon2D" parent="visual"]
-color = Color(0.2, 0.5, 0.9, 1)
-polygon = PackedVector2Array(-12, -24, 12, -24, 12, 24, -12, 24)
-
-[node name="facing_arrow" type="Polygon2D" parent="visual"]
-color = Color(1, 1, 1, 1)
+[node name="facing_arrow" type="Polygon2D" parent="visual" unique_id=1732823255]
 polygon = PackedVector2Array(10, -8, 22, 0, 10, 8)
 
-[node name="camera" type="Camera2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="visual" unique_id=614858025]
+position = Vector2(0.1979991, -1.8020002)
+scale = Vector2(0.04912599, 0.04912599)
+sprite_frames = SubResource("SpriteFrames_acav8")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.063091725
 
-[node name="status_label" type="Label" parent="."]
+[node name="camera" type="Camera2D" parent="." unique_id=394439694]
+zoom = Vector2(2, 2)
+script = ExtResource("3_camera_shake")
+
+[node name="status_label" type="Label" parent="." unique_id=199909371]
 visible = false
 offset_left = -60.0
 offset_top = -70.0
 offset_right = 60.0
 offset_bottom = -46.0
-theme_override_font_sizes/font_size = 18
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
