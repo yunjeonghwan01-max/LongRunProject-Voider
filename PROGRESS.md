@@ -73,6 +73,37 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - 카운터만 분리한 환경에서의 추가 미세튜닝은 보류. 실제 전투 환경을 먼저 만든 뒤,
   이동/공격/회피/스킬과 적의 다른 행동이 동시에 일어나는 상황에서 체감을 다시 검증할 것.
 
+## 배경 / 타일셋 / 공격 이펙트 (2026-09-20)
+
+### 배경 씬 (`_scenes/background.tscn`, `_scripts/background.tscn.gd`)
+- `_assets/sprites/tem_ai_assets/bg.png`를 `main.tscn`의 배경으로 사용하기 위해
+  전용 씬으로 분리 (Node2D 루트 + Sprite2D `body`).
+- 뷰포트 크기에 맞춰 이미지를 cover 방식(가로/세로 중 큰 배율)으로 스케일 + 중앙
+  정렬하는 스크립트 포함. `get_viewport().size_changed` 시그널로 창 크기 변경에도 대응.
+- `main.tscn`에서 `game` 노드보다 먼저(형제 순서상 위) 배치해 항상 맨 뒤에 그려지도록 함.
+
+### 타일셋 투명 타일 (`_assets/sprites/combat_test_tileset.tres`)
+- `tile_transparent.png`(완전 투명 32x32) 이미지를 새 `TileSetAtlasSource`(`sources/1`)로 추가.
+- **주의**: 최초 추가 시 충돌 폴리곤(`physics_layer_0/polygon_0`)을 빠뜨려서 플레이어가
+  이 타일을 그냥 통과하는 버그가 있었음. Godot의 TileMap 충돌은 이미지 알파값이 아니라
+  타일셋에 정의된 폴리곤으로만 결정되므로, 시각적으로 투명해도 충돌을 원하면 반드시
+  기존 타일과 동일한 폴리곤을 별도로 지정해야 함. → 폴리곤 추가로 해결.
+- 현재 투명 타일은 기존 타일과 동일하게 32x32 정사각형 충돌체를 가짐 (보이지 않는
+  발판/벽 용도로 사용 가능).
+
+### 공격 연출 추가 (`systems/player/player.gd`, `systems/combat/`)
+- 근접 공격 hitbox 활성화 시 `slash_effect.tscn`(보라색 초승달 참격)을 바라보는 방향에 스폰.
+- 타격 성공 시 `hit_spark.tscn`(보라색 히트 스파크)을 타격 지점에 스폰 + 카메라 쉐이크
+  (`attack_hit_shake_strength`, `attack_hit_shake_duration` export로 조절 가능).
+- `ranged_attack.tscn`(적 원거리 투사체)과 `windblast.tscn`(플레이어 장풍) 색상을
+  각각 붉은 계열 / 연보라 계열로 변경 (순수 색상 조정, 판정 로직 변경 없음).
+
+### 파일 구조 정리
+- `prototypes/combat_test/test_enemy.gd(.uid)/.tscn` → `_scripts/test_enemy.gd`,
+  `_scenes/test_enemy.tscn`으로 이동 (CLAUDE.md의 `_scripts`/`_scenes` 명명 규칙 준수).
+- `systems/camera/camera_shake.gd(.uid)` → `_scripts/camera_shake.gd`로 이동.
+- 위 이동에 따라 `prototypes/`, `systems/camera/`는 다시 빈 디렉터리 상태로 복귀.
+
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
 - 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현
