@@ -1,6 +1,18 @@
 [gd_scene format=3 uid="uid://bqk3m8x1lchw2"]
 
-[ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://prototypes/combat_test/test_enemy.gd" id="1_enemy"]
+[ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://_scripts/test_enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://_assets/sprites/tem_ai_assets/enemy.png" id="2_78io2"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dfdtf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_78io2")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
 size = Vector2(40, 60)
@@ -9,9 +21,10 @@ size = Vector2(40, 60)
 script = ExtResource("1_enemy")
 max_health = 99
 
-[node name="body" type="Polygon2D" parent="." unique_id=460240324]
-color = Color(0.8, 0.15, 0.15, 1)
-polygon = PackedVector2Array(-20, -30, 20, -30, 20, 30, -20, 30)
+[node name="body" type="AnimatedSprite2D" parent="." unique_id=214879523]
+scale = Vector2(0.155, 0.155)
+sprite_frames = SubResource("SpriteFrames_dfdtf")
+animation = &"idle"
 
 [node name="hurtbox" type="Area2D" parent="." unique_id=1131159925]
 collision_layer = 8

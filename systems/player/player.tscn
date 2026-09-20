@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dvgad34h8wdq3" path="res://systems/player/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://dbaaf12auyyyr" path="res://_assets/sprites/Voider Player01.png" id="2_ktl23"]
-[ext_resource type="Script" uid="uid://dkm0cbiaqjeox" path="res://systems/camera/camera_shake.gd" id="3_camera_shake"]
+[ext_resource type="Script" uid="uid://dkm0cbiaqjeox" path="res://_scripts/camera_shake.gd" id="3_camera_shake"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 48)

@@ -21,6 +21,12 @@ extends CharacterBody2D
 @export var attack_hitbox_offset: float = 28.0
 @export var attack_move_speed_scale: float = 1.0
 
+@export_group("Attack Effects")
+@export var slash_effect_scene: PackedScene = preload("res://systems/combat/slash_effect.tscn")
+@export var hit_spark_scene: PackedScene = preload("res://systems/combat/hit_spark.tscn")
+@export var attack_hit_shake_strength: float = 1.8
+@export var attack_hit_shake_duration: float = 0.08
+
 @export_group("Windblast Skill")
 @export var windblast_scene: PackedScene = preload("res://systems/combat/windblast.tscn")
 @export var windblast_cooldown: float = 1.5
@@ -188,7 +194,20 @@ func _activate_attack_hitbox() -> void:
 		return
 	_attack_hitbox.monitoring = true
 	_attack_hitbox_shape.disabled = false
+	_spawn_slash_effect()
 	print("ATTACK ACTIVE")
+
+
+## 공격 판정이 켜지는 순간, 바라보는 방향으로 보라색 초승달 참격 이펙트를 스폰한다.
+func _spawn_slash_effect() -> void:
+	if not slash_effect_scene:
+		return
+
+	var slash: Node2D = slash_effect_scene.instantiate()
+	slash.rotation = deg_to_rad(-20.0 * facing_direction)
+	slash.scale.x = facing_direction
+	slash.global_position = global_position + Vector2(attack_hitbox_offset * facing_direction, 0.0)
+	get_parent().add_child(slash)
 
 
 func _deactivate_attack_hitbox() -> void:
@@ -210,8 +229,22 @@ func _on_attack_hitbox_area_entered(area: Area2D) -> void:
 	print("Target: %s" % target.name)
 	print("Damage: %d" % attack_damage)
 
+	_spawn_hit_spark(area.global_position)
+	if _camera:
+		_camera.shake(attack_hit_shake_strength, attack_hit_shake_duration)
+
 	if target.has_method("take_damage"):
 		target.take_damage(attack_damage, self)
+
+
+## 타격 지점에 보라색 히트 스파크를 스폰해 타격감을 명확히 드러낸다.
+func _spawn_hit_spark(spawn_position: Vector2) -> void:
+	if not hit_spark_scene:
+		return
+
+	var spark: Node2D = hit_spark_scene.instantiate()
+	spark.global_position = spawn_position
+	get_parent().add_child(spark)
 
 
 ## 바라보는 방향으로 장풍(Windblast)을 발사한다. 발사 직후 1.5초 쿨타임 동안 재사용 불가.

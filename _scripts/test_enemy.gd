@@ -12,8 +12,11 @@ const RANGED_ATTACK_SCENE := preload("res://systems/combat/ranged_attack.tscn")
 var health: int
 
 var _knockback_tween: Tween = null
+var _flash_tween: Tween = null
+var _body_original_modulate: Color
 
 @onready var _attack_timer: Timer = $attack_timer
+@onready var _body: AnimatedSprite2D = $body
 
 
 func _ready() -> void:
@@ -21,6 +24,8 @@ func _ready() -> void:
 	_attack_timer.wait_time = attack_interval
 	_attack_timer.timeout.connect(_on_attack_timer_timeout)
 	_attack_timer.start()
+	if _body:
+		_body_original_modulate = _body.modulate
 
 
 ## 플레이어 근접 공격 HitBox / 장풍 등이 hurtbox에 닿았을 때 호출된다.
@@ -30,12 +35,28 @@ func take_damage(amount: int, _source: Node, knockback: Vector2 = Vector2.ZERO) 
 	health -= amount
 	print("[Enemy] %s took %d damage (health=%d/%d)" % [name, amount, health, max_health])
 
+	_flash_hit()
+
 	if knockback != Vector2.ZERO:
 		_apply_knockback(knockback)
 
 	if health <= 0:
 		print("[Enemy] %s defeated" % name)
 		queue_free()
+
+
+## 피격 시 스프라이트 modulate를 순간 밝게 올렸다가 원래 값으로 되돌려, 타격을 눈에 띄게 드러낸다.
+## 다단히트로 연속 호출되어도 깜빡이지 않도록 이전 플래시 Tween은 덮어쓴다.
+func _flash_hit() -> void:
+	if not _body:
+		return
+
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+
+	_body.modulate = Color(4, 4, 4, 1)
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(_body, "modulate", _body_original_modulate, 0.12)
 
 
 ## 물리 바디가 없는 최소 테스트 적이므로, 짧은 Tween으로 위치를 살짝 밀어내는 것으로
