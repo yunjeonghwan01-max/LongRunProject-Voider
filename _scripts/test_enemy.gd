@@ -8,7 +8,9 @@ const RANGED_ATTACK_SCENE := preload("res://systems/combat/ranged_attack.tscn")
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
 @export var max_health: int = 3
-
+@export var move_distance: float = 0.0
+@export var move_timer: float = 0.0
+var move_time: float = 2.0
 var health: int
 
 var _knockback_tween: Tween = null
@@ -26,6 +28,8 @@ func _ready() -> void:
 	_attack_timer.start()
 	if _body:
 		_body_original_modulate = _body.modulate
+func _physics_process(delta):
+	_move(delta)
 
 
 ## 플레이어 근접 공격 HitBox / 장풍 등이 hurtbox에 닿았을 때 호출된다.
@@ -85,3 +89,19 @@ func _spawn_ranged_attack(player: Node2D) -> void:
 	attack.target_player = player
 	attack.global_position = global_position
 	get_parent().add_child(attack)
+
+func _set_facing_direction(new_direction: Vector2) -> void:
+	if new_direction == facing_direction:
+		return
+	facing_direction = new_direction
+	if _body:
+		_body.scale.x = facing_direction[0]
+
+func _move(delta: float) -> void:
+	if move_timer <= 0:
+		move_distance = randi() % 100
+		move_timer = move_time
+	position += (move_distance / move_time) * facing_direction * delta
+
+	move_timer -= delta
+	
