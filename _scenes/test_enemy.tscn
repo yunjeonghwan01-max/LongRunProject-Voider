@@ -3,6 +3,12 @@
 [ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://_scripts/test_enemy.gd" id="1_enemy"]
 [ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://_assets/sprites/tem_ai_assets/enemy.png" id="2_78io2"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(40, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(40, 60)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_dfdtf"]
 animations = [{
 "frames": [{
@@ -14,25 +20,26 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
-size = Vector2(40, 60)
-
-[node name="test_enemy" type="Node2D" unique_id=52666884]
+[node name="test_enemy" type="CharacterBody2D" unique_id=1500168589]
+collision_layer = 4
 script = ExtResource("1_enemy")
 max_health = 99
+
+[node name="collision_shape" type="CollisionShape2D" parent="." unique_id=1977334621]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="hurtbox" type="Area2D" parent="." unique_id=1131159925]
+collision_layer = 16
+collision_mask = 0
+monitoring = false
+
+[node name="collision_shape" type="CollisionShape2D" parent="hurtbox" unique_id=1480276193]
+shape = SubResource("RectangleShape2D_hurtbox")
 
 [node name="body" type="AnimatedSprite2D" parent="." unique_id=214879523]
 scale = Vector2(0.155, 0.155)
 sprite_frames = SubResource("SpriteFrames_dfdtf")
 animation = &"idle"
-
-[node name="hurtbox" type="Area2D" parent="." unique_id=1131159925]
-collision_layer = 8
-collision_mask = 0
-monitoring = false
-
-[node name="collision_shape" type="CollisionShape2D" parent="hurtbox" unique_id=1977334621]
-shape = SubResource("RectangleShape2D_hurtbox")
 
 [node name="attack_timer" type="Timer" parent="." unique_id=914661955]
 wait_time = 2.5

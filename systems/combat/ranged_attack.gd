@@ -10,7 +10,7 @@ extends "res://systems/combat/attack.gd"
 @export var max_lifetime: float = 4.0
 @export var direction_dot_threshold: float = 0.4
 @export var hit_distance: float = 20.0
-@export var los_collision_mask: int = 0b10  # layer 2 = walls/장애물 전용
+@export_flags_2d_physics var los_collision_mask: int = CollisionLayers.WORLD  # 시야는 지형만 가린다
 
 @export_group("Pre-Signal")
 @export var pre_signal_duration: float = 0.35

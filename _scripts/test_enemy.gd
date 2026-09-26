@@ -1,16 +1,18 @@
-extends Node2D
+extends CharacterBody2D
 
 ## 카운터 시스템 검증용 최소 테스트 적.
-## 이동/체력/AI 없이, 일정 주기로 원거리 counterable attack만 발동한다.
+## 좌우로 이동하다 벽(WORLD)에 닿으면 방향을 바꾸고, 일정 주기로 원거리 counterable attack을 발동한다.
+##
+## 충돌 노드 분리 (레이어 정의: systems/physics/collision_layers.gd)
+##   - 루트 collision_shape: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
+##   - hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
 const RANGED_ATTACK_SCENE := preload("res://systems/combat/ranged_attack.tscn")
 
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
+@export var move_speed = 100
 @export var max_health: int = 3
-@export var move_distance: float = 0.0
-@export var move_timer: float = 0.0
-var move_time: float = 2.0
 var health: int
 
 var _knockback_tween: Tween = null
@@ -63,7 +65,7 @@ func _flash_hit() -> void:
 	_flash_tween.tween_property(_body, "modulate", _body_original_modulate, 0.12)
 
 
-## 물리 바디가 없는 최소 테스트 적이므로, 짧은 Tween으로 위치를 살짝 밀어내는 것으로
+## 짧은 Tween으로 위치를 살짝 밀어내는 것으로
 ## 넉백을 대신한다. 다단히트로 연속 호출되어도 튀지 않도록 이전 넉백 Tween은 덮어쓴다.
 func _apply_knockback(knockback: Vector2) -> void:
 	if _knockback_tween and _knockback_tween.is_valid():
@@ -90,18 +92,20 @@ func _spawn_ranged_attack(player: Node2D) -> void:
 	attack.global_position = global_position
 	get_parent().add_child(attack)
 
-func _set_facing_direction(new_direction: Vector2) -> void:
-	if new_direction == facing_direction:
-		return
-	facing_direction = new_direction
-	if _body:
-		_body.scale.x = facing_direction[0]
+func change_facing_dir():
+	facing_direction = -facing_direction
+	# 스프라이트 기본 방향이 왼쪽이므로, 오른쪽을 볼 때만 X 스케일을 뒤집는다.
+	var body_scale := _body.scale
+	body_scale.x = absf(body_scale.x) * (-1.0 if facing_direction.x > 0.0 else 1.0)
+	_body.scale = body_scale
 
-func _move(delta: float) -> void:
-	if move_timer <= 0:
-		move_distance = randi() % 100
-		move_timer = move_time
-	position += (move_distance / move_time) * facing_direction * delta
 
-	move_timer -= delta
+func _move(_delta: float) -> void:
+	velocity.x = facing_direction.x * move_speed
+	move_and_slide()
+	if is_on_wall():
+		change_facing_dir()
+	
+
+	
 	

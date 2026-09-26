@@ -69,10 +69,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _on_body_entered(body: Node) -> void:
-	# 발사자 본인의 물리 바디(플레이어)는 벽 레이어와 동일한 기본 레이어를 쓰므로 제외한다.
-	if body == attacker:
-		return
-	# 벽/지형 충돌 시 자연스럽게 소멸.
+	# mask가 WORLD만 포함하므로 여기로 들어오는 바디는 지형뿐이다. 벽/지형 충돌 시 자연스럽게 소멸.
 	print("[Windblast] hit terrain(%s), despawn" % body.name)
 	queue_free()
 
