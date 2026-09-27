@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bqk3m8x1lchw2"]
 
 [ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://actors/enemies/test_enemy/test_enemy.gd" id="1_enemy"]
-[ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://_assets/sprites/tem_ai_assets/enemy.png" id="2_78io2"]
+[ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://assets/temporary/ai_generated/enemy.png" id="2_78io2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(40, 60)

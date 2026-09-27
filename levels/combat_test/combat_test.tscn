@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://bev2nh668npxe"]
 
-[ext_resource type="PackedScene" uid="uid://y2s7clw2jibk" path="res://_scenes/background.tscn" id="1_background"]
-[ext_resource type="TileSet" uid="uid://bcpfal5k68fvp" path="res://_assets/sprites/combat_test_tileset.tres" id="2_tileset"]
+[ext_resource type="PackedScene" uid="uid://y2s7clw2jibk" path="res://world/backgrounds/background.tscn" id="1_background"]
+[ext_resource type="TileSet" uid="uid://bcpfal5k68fvp" path="res://world/tiles/combat_test_tileset.tres" id="2_tileset"]
 [ext_resource type="PackedScene" uid="uid://c8x2p7q4mvn6h" path="res://actors/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" uid="uid://bqk3m8x1lchw2" path="res://actors/enemies/test_enemy/test_enemy.tscn" id="4_test_enemy"]
 

@@ -22,13 +22,13 @@ extends CharacterBody2D
 @export var attack_move_speed_scale: float = 1.0
 
 @export_group("Attack Effects")
-@export var slash_effect_scene: PackedScene = preload("res://systems/combat/slash_effect.tscn")
-@export var hit_spark_scene: PackedScene = preload("res://systems/combat/hit_spark.tscn")
+@export var slash_effect_scene: PackedScene = preload("res://combat/effects/slash_effect.tscn")
+@export var hit_spark_scene: PackedScene = preload("res://combat/effects/hit_spark.tscn")
 @export var attack_hit_shake_strength: float = 1.8
 @export var attack_hit_shake_duration: float = 0.08
 
 @export_group("Windblast Skill")
-@export var windblast_scene: PackedScene = preload("res://systems/combat/windblast.tscn")
+@export var windblast_scene: PackedScene = preload("res://actors/player/abilities/windblast/windblast.tscn")
 @export var windblast_cooldown: float = 1.5
 @export var windblast_spawn_offset: float = 30.0
 @export var windblast_recoil_speed: float = 60.0  ## 발사 시 플레이어에게 가해지는 아주 작은 반동

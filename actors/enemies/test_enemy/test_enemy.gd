@@ -3,11 +3,11 @@ extends CharacterBody2D
 ## 카운터 시스템 검증용 최소 테스트 적.
 ## 좌우로 이동하다 벽(WORLD)에 닿으면 방향을 바꾸고, 일정 주기로 원거리 counterable attack을 발동한다.
 ##
-## 충돌 노드 분리 (레이어 정의: systems/physics/collision_layers.gd)
+## 충돌 노드 분리 (레이어 정의: core/physics/collision_layers.gd)
 ##   - 루트 collision_shape: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
 ##   - hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
-const RANGED_ATTACK_SCENE := preload("res://systems/combat/ranged_attack.tscn")
+const RANGED_ATTACK_SCENE := preload("res://combat/attacks/ranged_attack.tscn")
 
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
