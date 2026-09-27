@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var sprite: Sprite2D = $sprite
+@onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:

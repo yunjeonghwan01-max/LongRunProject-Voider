@@ -10,11 +10,11 @@ class_name CollisionLayers
 ## | 레이어 | 이름            | 사용 노드                       | mask                |
 ## |--------|-----------------|---------------------------------|---------------------|
 ## | 1      | world           | TileMapLayer (지형/벽)          | -                   |
-## | 2      | player_body     | player (CharacterBody2D)        | WORLD               |
-## | 3      | enemy_body      | enemy (CharacterBody2D)         | WORLD               |
-## | 4      | player_attack   | player/attack_hitbox, windblast | ENEMY_HURTBOX (+WORLD: windblast 소멸용) |
-## | 5      | enemy_hurtbox   | enemy/hurtbox (Area2D)          | 0                   |
-## | 6      | player_hurtbox  | player/hurtbox (Area2D)         | 0                   |
+## | 2      | player_body     | Player (CharacterBody2D)        | WORLD               |
+## | 3      | enemy_body      | TestEnemy (CharacterBody2D)     | WORLD               |
+## | 4      | player_attack   | Player/Combat/AttackHitbox, Windblast | ENEMY_HURTBOX (+WORLD: windblast 소멸용) |
+## | 5      | enemy_hurtbox   | TestEnemy/Combat/Hurtbox (Area2D) | 0                 |
+## | 6      | player_hurtbox  | Player/Combat/Hurtbox (Area2D)  | 0                   |
 ## | 7      | enemy_attack    | (예약) 적 근접/투사체 판정       | PLAYER_HURTBOX      |
 
 const WORLD := 1 << 0

@@ -4,8 +4,8 @@ extends CharacterBody2D
 ## 좌우로 이동하다 벽(WORLD)에 닿으면 방향을 바꾸고, 일정 주기로 원거리 counterable attack을 발동한다.
 ##
 ## 충돌 노드 분리 (레이어 정의: core/physics/collision_layers.gd)
-##   - 루트 collision_shape: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
-##   - hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
+##   - BodyCollision: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
+##   - Combat/Hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
 const RANGED_ATTACK_SCENE := preload("res://combat/attacks/ranged_attack.tscn")
 
@@ -19,8 +19,8 @@ var _knockback_tween: Tween = null
 var _flash_tween: Tween = null
 var _body_original_modulate: Color
 
-@onready var _attack_timer: Timer = $attack_timer
-@onready var _body: AnimatedSprite2D = $body
+@onready var _attack_timer: Timer = $Combat/AttackTimer
+@onready var _body: AnimatedSprite2D = $Visual/AnimatedSprite2D
 
 
 func _ready() -> void:
@@ -90,7 +90,7 @@ func _spawn_ranged_attack(player: Node2D) -> void:
 	attack.facing_direction = facing_direction
 	attack.target_player = player
 	attack.global_position = global_position
-	get_parent().add_child(attack)
+	LevelContainers.projectiles(self).add_child(attack)
 
 func change_facing_dir():
 	facing_direction = -facing_direction

@@ -23,3 +23,7 @@ position = Vector2(200, 616)
 
 [node name="TestEnemy" parent="Actors" unique_id=967971469 instance=ExtResource("4_test_enemy")]
 position = Vector2(650, 616)
+
+[node name="Projectiles" type="Node2D" parent="." unique_id=1455976478 groups=["level_projectiles"]]
+
+[node name="Effects" type="Node2D" parent="." unique_id=1953440331 groups=["level_effects"]]

@@ -48,11 +48,11 @@ var _attack_hit_targets: Array = []
 
 var can_use_windblast: bool = true
 
-@onready var _visual: Node2D = $visual
-@onready var _status_label: Label = $status_label
-@onready var _attack_hitbox: Area2D = $attack_hitbox
-@onready var _attack_hitbox_shape: CollisionShape2D = $attack_hitbox/collision_shape
-@onready var _camera: CameraShake = $camera
+@onready var _visual: Node2D = $Visual
+@onready var _status_label: Label = $StatusLabel
+@onready var _attack_hitbox: Area2D = $Combat/AttackHitbox
+@onready var _attack_hitbox_shape: CollisionShape2D = $Combat/AttackHitbox/CollisionShape2D
+@onready var _camera: CameraShake = $Camera
 
 
 func _ready() -> void:
@@ -207,7 +207,7 @@ func _spawn_slash_effect() -> void:
 	slash.rotation = deg_to_rad(-20.0 * facing_direction)
 	slash.scale.x = facing_direction
 	slash.global_position = global_position + Vector2(attack_hitbox_offset * facing_direction, 0.0)
-	get_parent().add_child(slash)
+	LevelContainers.effects(self).add_child(slash)
 
 
 func _deactivate_attack_hitbox() -> void:
@@ -218,8 +218,10 @@ func _deactivate_attack_hitbox() -> void:
 
 
 ## 한 번의 공격 active time 동안 같은 대상은 한 번만 타격한다.
+## Hurtbox는 Actor의 Combat/ 아래에 있으므로 씬 루트(owner)를 피격 대상으로 본다.
+## (Structure Refactor V0의 동작 보존용 최소 수정. Hurtbox 컴포넌트화 전까지의 임시 조회 방식)
 func _on_attack_hitbox_area_entered(area: Area2D) -> void:
-	var target := area.get_parent()
+	var target := area.owner
 	if target == null or target in _attack_hit_targets:
 		return
 
@@ -244,7 +246,7 @@ func _spawn_hit_spark(spawn_position: Vector2) -> void:
 
 	var spark: Node2D = hit_spark_scene.instantiate()
 	spark.global_position = spawn_position
-	get_parent().add_child(spark)
+	LevelContainers.effects(self).add_child(spark)
 
 
 ## 바라보는 방향으로 장풍(Windblast)을 발사한다. 발사 직후 1.5초 쿨타임 동안 재사용 불가.
@@ -270,7 +272,7 @@ func _spawn_windblast() -> void:
 	windblast.attacker = self
 	windblast.travel_direction = Vector2(facing_direction, 0.0)
 	windblast.global_position = global_position + Vector2(windblast_spawn_offset * facing_direction, 0.0)
-	get_parent().add_child(windblast)
+	LevelContainers.projectiles(self).add_child(windblast)
 
 
 func _start_counter_recovery() -> void:

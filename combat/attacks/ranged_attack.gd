@@ -24,7 +24,7 @@ var _travel_direction: Vector2 = Vector2.ZERO
 var _is_flying: bool = false
 var _lifetime_elapsed: float = 0.0
 
-@onready var _visual: Node2D = $visual
+@onready var _visual: Node2D = $Visual
 
 var _glow_tween: Tween = null
 var _pre_signal_tween: Tween = null

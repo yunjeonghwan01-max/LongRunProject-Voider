@@ -28,7 +28,7 @@ var _hit_damages: Array[int] = []
 var _hit_targets: Dictionary = {}  # target -> true (진행 중이거나 이미 완료된 대상)
 var _lifetime_elapsed: float = 0.0
 
-@onready var _visual: Node2D = $visual
+@onready var _visual: Node2D = $Visual
 
 
 func _ready() -> void:
@@ -64,8 +64,10 @@ func _compute_hit_damages() -> void:
 		_hit_damages.append(base + (1 if i < remainder else 0))
 
 
+## Hurtbox는 Actor의 Combat/ 아래에 있으므로 씬 루트(owner)를 피격 대상으로 본다.
+## (Structure Refactor V0의 동작 보존용 최소 수정. Hurtbox 컴포넌트화 전까지의 임시 조회 방식)
 func _on_area_entered(area: Area2D) -> void:
-	_try_register_hit(area.get_parent())
+	_try_register_hit(area.owner)
 
 
 func _on_body_entered(body: Node) -> void:

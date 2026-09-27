@@ -9,7 +9,7 @@ extends Node2D
 @export var end_radius: float = 22.0
 @export var lifetime: float = 0.16
 
-@onready var _polygon: Polygon2D = $polygon
+@onready var _polygon: Polygon2D = $Polygon2D
 
 
 func _ready() -> void:

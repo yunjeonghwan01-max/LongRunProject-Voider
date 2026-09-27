@@ -20,26 +20,30 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="test_enemy" type="CharacterBody2D" unique_id=1500168589]
+[node name="TestEnemy" type="CharacterBody2D" unique_id=1500168589]
 collision_layer = 4
 script = ExtResource("1_enemy")
 max_health = 99
 
-[node name="collision_shape" type="CollisionShape2D" parent="." unique_id=1977334621]
-shape = SubResource("RectangleShape2D_body")
+[node name="Visual" type="Node2D" parent="." unique_id=1360378445]
 
-[node name="hurtbox" type="Area2D" parent="." unique_id=1131159925]
-collision_layer = 16
-collision_mask = 0
-monitoring = false
-
-[node name="collision_shape" type="CollisionShape2D" parent="hurtbox" unique_id=1480276193]
-shape = SubResource("RectangleShape2D_hurtbox")
-
-[node name="body" type="AnimatedSprite2D" parent="." unique_id=214879523]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visual" unique_id=214879523]
 scale = Vector2(0.155, 0.155)
 sprite_frames = SubResource("SpriteFrames_dfdtf")
 animation = &"idle"
 
-[node name="attack_timer" type="Timer" parent="." unique_id=914661955]
+[node name="BodyCollision" type="CollisionShape2D" parent="." unique_id=1977334621]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Combat" type="Node2D" parent="." unique_id=2046318251]
+
+[node name="Hurtbox" type="Area2D" parent="Combat" unique_id=1131159925]
+collision_layer = 16
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/Hurtbox" unique_id=1480276193]
+shape = SubResource("RectangleShape2D_hurtbox")
+
+[node name="AttackTimer" type="Timer" parent="Combat" unique_id=914661955]
 wait_time = 2.5

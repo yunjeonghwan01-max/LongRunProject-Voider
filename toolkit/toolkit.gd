@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 
-@onready var debug_hud: Control = $debug_hud
+@onready var debug_hud: Control = $DebugHud
 
 
 func _ready() -> void:

@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://iqmv2uj5jqac" path="res://assets/temporary/ai_generated/bg.png" id="2_bg"]
 
-[node name="background" type="Node2D" unique_id=81005332]
+[node name="Background" type="Node2D" unique_id=81005332]
 
-[node name="sprite" type="Sprite2D" parent="." unique_id=456376206]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=456376206]
 texture = ExtResource("2_bg")

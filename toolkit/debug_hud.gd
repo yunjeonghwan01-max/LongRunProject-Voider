@@ -1,7 +1,7 @@
 extends Control
 
 
-@onready var info_label: Label = $info_label
+@onready var info_label: Label = $InfoLabel
 
 
 func _process(_delta: float) -> void:

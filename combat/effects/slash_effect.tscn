@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://combat/effects/slash_effect.gd" id="1_slash"]
 
-[node name="slash_effect" type="Node2D"]
+[node name="SlashEffect" type="Node2D"]
 script = ExtResource("1_slash")
 
-[node name="polygon" type="Polygon2D" parent="."]
+[node name="Polygon2D" type="Polygon2D" parent="."]

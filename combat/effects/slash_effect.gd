@@ -10,7 +10,7 @@ extends Node2D
 @export var arc_degrees: float = 140.0
 @export var lifetime: float = 0.18
 
-@onready var _polygon: Polygon2D = $polygon
+@onready var _polygon: Polygon2D = $Polygon2D
 
 
 func _ready() -> void:
