@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-IBBD Prototype Base is a starter/template project for Godot 4.7 (Forward Plus rendering, Jolt Physics for 3D) intended as a common launchpad for rapid gameplay prototyping. It is currently in a very early, mostly-empty scaffold state — `prototypes/` and `systems/` exist only as placeholder directories (`.gitkeep`) for prototype-specific scenes and shared systems that will be added over time.
+Voider is a 2D side-scrolling action game built in Godot 4.7, grown out of the IBBD Prototype Base template. The current focus is the core combat loop (attack vs. counter, "카유공" = counter-inducing attacks). Design decisions, playtest results and history live in `PROGRESS.md`; a scored project audit (pre-refactor snapshot) is in `PROJECT_AUDIT.md`.
+
+Engine settings worth knowing:
+- The effective renderer is **Compatibility** (`renderer/rendering_method="gl_compatibility"`), even though `config/features` still lists `"Forward Plus"`.
+- 2D physics uses Godot's default 2D engine. `3d/physics_engine="Jolt Physics"` only affects 3D.
 
 ## Running and editing
 
-This is a Godot Engine project — there is no CLI build/test/lint pipeline. Open and run it through the Godot 4.7 editor (macOS app path configured in `.vscode/settings.json` as `/Applications/Godot.app`). The main scene is `_scenes/main.tscn` (set via `run/main_scene` in `project.godot`).
+This is a Godot Engine project — there is no CLI build/test/lint pipeline. Open and run it through the Godot 4.7 editor (macOS app path configured in `.vscode/settings.json` as `/Applications/Godot.app`). The main scene is `app/main.tscn` (set via `run/main_scene` in `project.godot`, referenced by UID).
 
 To run headless from the terminal (e.g. to sanity-check the project loads):
 ```
@@ -19,21 +23,38 @@ There are no automated tests in this repo.
 
 ## Directory layout
 
-- `_scenes/` — top-level `.tscn` scene files (prefixed with `_` to sort above gameplay content in the editor's FileSystem dock).
-- `_scripts/` — GDScript files, mirroring the scene tree. A script for a scene named `X.tscn` is named `X.tscn.gd` and lives alongside a matching `.uid` file (Godot 4's script UID references — do not hand-edit `.uid` files).
-- `_assets/` — raw art/audio source assets (`sprites/`, `audio/`, `fonts/`).
-- `prototypes/` — intended home for individual gameplay prototypes built on this base (currently empty).
-- `systems/` — intended home for shared/reusable gameplay systems (currently empty).
+The structure rules (folder responsibilities, file/node naming, Scene Tree vocabulary, engine-constraint exceptions) are defined in **`VOIDER_STRUCTURE_REFACTOR_V0.md`**. Follow it when adding files or nodes, and update it when the structure changes.
+
+- `app/` — top-level shell (`main.tscn`: current level instance + toolkit). No level content here.
+- `actors/` — things with their own state and behavior: `player/` (incl. `abilities/windblast/`), `enemies/test_enemy/`.
+- `combat/` — shared combat language not owned by one actor: `attacks/` (`Attack`, `CounterResult`, `RangedAttack`), `effects/` (`SlashEffect`, `HitSpark`).
+- `world/` — non-actor world objects/resources: `backgrounds/`, `tiles/` (TileSet).
+- `levels/` — playable spaces: `combat_test/combat_test.tscn`, plus `level_containers.gd` (runtime spawn-container lookup).
+- `camera/` — `CameraShake`.
+- `toolkit/` — developer-only toolkit and debug HUD.
+- `core/` — low-level shared foundations only: `physics/collision_layers.gd`.
+- `assets/` — raw source assets: `characters/`, `environment/`, `temporary/` (placeholder/AI-generated art).
+- `addons/godot_mcp/` — Godot MCP editor plugin.
+
+Conventions: a scene and its script share a basename (`player.tscn` + `player.gd`); files are `snake_case`, nodes are `PascalCase`. Move `.uid` (scripts) and `.import` (images) files together with their source file; never hand-edit them.
 
 ## Architecture
 
-`main.tscn` is the root scene: a `Node2D` (`_scripts/main.tscn.gd`) with two children — a `game` node (empty placeholder where prototype content is expected to be added) and an instance of `toolkit.tscn`.
+`app/main.tscn` is a plain `Node` shell with two children: the current level instance (`CombatTest`) and the `Toolkit`.
 
-`toolkit.tscn` (`_scripts/tool_kit/ibbd_toolkit.gd`) is a `CanvasLayer` that provides an always-on developer toolkit, independent of the game's pause state (`process_mode = PROCESS_MODE_ALWAYS`). It listens for dedicated `tool_*` input actions (defined in `project.godot`, distinct from the `player_*` gameplay actions) and currently supports:
+`levels/combat_test/combat_test.tscn` holds `World` (background + `PlatformTileMap`), `Actors` (Player, TestEnemy), and the runtime containers `Projectiles` / `Effects` (groups `level_projectiles` / `level_effects`). Actors spawn projectiles/effects via `LevelContainers.projectiles(self)` / `LevelContainers.effects(self)`; without a level (e.g. running an actor scene alone) it falls back to the spawner's parent and warns once in debug builds.
+
+Actors follow the V0 vocabulary: `Visual` (only this flips with facing), `BodyCollision` (the `CollisionShape2D` itself — must be a direct child of the body), `Combat` (`Hurtbox`, `AttackHitbox`, attack timers). Attacks find their target through the hurtbox's `owner` (the actor root); this is a stop-gap until hitbox/hurtbox components exist.
+
+Combat principles to preserve: `Attack.try_counter()` — the attack judges counters itself and succeeds at most once; `RangedAttack` runs Pre-Signal → Counter Window → Flight; `Windblast` pierces with independent per-target multi-hit and distributes total damage; `CameraShake` never lets a weaker request override a stronger active shake.
+
+Physics layers are named in `project.godot` and mirrored as constants in `core/physics/collision_layers.gd` (world, player_body, enemy_body, player_attack, enemy_hurtbox, player_hurtbox, enemy_attack). Bodies mask only `world`; attack areas mask the opposing hurtbox layer.
+
+`toolkit/toolkit.tscn` (`toolkit/toolkit.gd`) is a `CanvasLayer` that provides an always-on developer toolkit, independent of the game's pause state (`process_mode = PROCESS_MODE_ALWAYS`). It listens for dedicated `tool_*` input actions (defined in `project.godot`, distinct from the `player_*` gameplay actions) and currently supports:
 - `tool_toggle_hud` — show/hide the debug HUD
 - `tool_restart` — reload the current scene
 - `tool_pause` — toggle `get_tree().paused`
 
-The debug HUD (`_scripts/tool_kit/debug_hud.gd`, a `Control` under the toolkit's `CanvasLayer`) renders FPS, frame time, and current scene name into a `Label` every `_process` frame.
+The debug HUD (`toolkit/debug_hud.gd`, a `Control` under the toolkit's `CanvasLayer`) renders FPS, frame time, and current scene name into a `Label` every `_process` frame.
 
-When adding new prototypes, the expected pattern is to build them under `prototypes/` (or as children of the `game` node in `main.tscn`) so they get the toolkit's debug/pause/restart affordances for free.
+To add a new level, create it under `levels/<name>/` with the level vocabulary (`World`, `Actors`, `Projectiles`, `Effects` as needed) and instance it from `app/main.tscn` in place of `CombatTest`.

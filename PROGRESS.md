@@ -5,7 +5,7 @@
 새로운 결정/플레이테스트 결과/방향 전환이 있을 때마다 이 파일을 갱신할 것.
 
 ## 프로젝트 개요
-IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
+IBBD Prototype Base 스캐폴드(Godot 4.7, 실제 렌더러는 Compatibility) 위에서
 2D 횡스크롤 액션 게임 "Voider"의 핵심 전투 루프(공격 vs 카운터)를 프로토타이핑 중.
 
 ### 프로젝트 공용 용어
@@ -14,10 +14,10 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 
 ## 구현된 시스템
 
-### 플레이어 (`systems/player/player.gd`)
+### 플레이어 (`actors/player/player.gd`)
 - 기본 이동/점프/중력 (`speed`, `jump_velocity`, `gravity`)
 - 바라보는 방향에 따라 visual/attack_hitbox 좌우 반전
-- 대쉬 (`player_dash` 액션, 기본 키 Shift)
+- 대쉬 (`player_dash` 액션, 기본 키 C)
   - 현재 `facing_direction`으로 즉시 `velocity.x = dash_speed`를 설정하는 순수 수평 이동
   - `dash_speed`(900) / `dash_duration`(0.15s) / `dash_cooldown`(0.5s) 모두 export 변수로 분리
   - 대쉬 중에는 일반 이동/감속 로직을 건너뛰어 재발동 및 입력 간섭을 막고, 종료 시 그대로 일반 이동 상태로 복귀
@@ -30,14 +30,14 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
   - 실패(whiff) 시 `counter_recovery_duration`(현재 0.3s) 동안 재입력 불가
   - 성공/실패 시 머리 위 상태 텍스트(`status_label`)로 피드백
 
-### 전투 공통 (`systems/combat/`)
+### 전투 공통 (`combat/attacks/`, `combat/effects/`)
 - `attack.gd` (`Attack` 베이스 클래스): 상태=변수, 판정=함수, 결과 전달=Signal 원칙
   - `counterable`, `counter_window_duration`, `try_counter()`, `counter_succeeded` 시그널
 - `counter_result.gd` (`CounterResult`): 카운터 성공/실패 결과 데이터 (attacker, attack_type,
   input_time_msec, success) — 궁극기 게이지 등 후속 시스템이 구독할 수 있도록 설계했으나
   **현재 어떤 시스템에도 연결되어 있지 않음** (미연결 상태로 존재)
 - `ranged_attack.gd` (`RangedAttack : Attack`): 원거리 카운터 가능 공격 프로토타입 ("카유공")
-  - 발동 시 방향(dot product) + 시야(raycast, layer 2 장애물) 검사로 카운터 후보 여부 결정
+  - 발동 시 방향(dot product) + 시야(raycast, `world` 레이어만 장애물) 검사로 카운터 후보 여부 결정
   - 후보면 Pre-Signal → counter window 순으로 진행, 카운터 안 되면 window 종료 후
     플레이어를 향해 직선 비행하여 히트
   - **Pre-Signal**: counter window가 열리기 전 예고 구간(`pre_signal_duration`, 기본 0.35s).
@@ -48,15 +48,16 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
   - window 종료 시 밝기/스케일 원상 복구 (`_stop_window_glow`)
   - 카운터 판정 로직 자체는 이번 작업에서 변경하지 않음 (순수 시각 효과만 추가)
 
-### 테스트 적 (`prototypes/combat_test/test_enemy.gd`)
-- 이동/AI 없음. 일정 주기(`attack_interval`, 기본 2.5s)로 RangedAttack만 발동하는
-  카운터 시스템 검증 전용 최소 스텁. 체력/피격 로그만 존재.
+### 테스트 적 (`actors/enemies/test_enemy/test_enemy.gd`)
+- 카운터 시스템 검증 전용 최소 스텁. `CharacterBody2D`로 좌우 이동하다 벽에 닿으면 반전하고,
+  일정 주기(`attack_interval`, 기본 2.5s)로 RangedAttack을 발동한다.
+  체력 감소/피격 플래시/Tween 넉백/로그만 존재 (AI 상태, 중력 없음).
 
-### 전투 테스트용 TileMap 플랫폼 환경 (`_scenes/main.tscn`, `_assets/sprites/`)
-- 기존 고정 `floor`(StaticBody2D) 노드를 제거하고 `game/platform_tilemap`(TileMapLayer)으로 교체.
+### 전투 테스트용 TileMap 플랫폼 환경 (`levels/combat_test/combat_test.tscn`, `world/tiles/`)
+- 기존 고정 `floor`(StaticBody2D) 노드를 제거하고 TileMapLayer로 교체 (현재 `CombatTest/World/PlatformTileMap`).
   Godot 에디터의 타일 페인트 도구로 바닥/벽/발판을 자유롭게 다시 설계할 수 있음.
-- `_assets/sprites/combat_test_tileset.tres`: 32x32 임시 그래픽(`tile_placeholder.png`) 기반
-  TileSet. `physics_layer_0/collision_layer|mask = 1`로 플레이어 충돌 레이어(1/1)와 매칭.
+- `world/tiles/combat_test_tileset.tres`: 32x32 임시 그래픽(`assets/environment/tiles/tile_placeholder.png`) 기반
+  TileSet. `physics_layer_0/collision_layer = 1` (`world` 레이어). 바디들은 mask `world`로 이 타일을 밟는다.
 - 기본으로 깔아둔 레이아웃 (32px 그리드, 바닥 top y=640): 전체 폭 2타일 두께 바닥,
   좌우 경계 벽, 점프로 닿을 수 있는 높이(바닥 위 64px, 점프 최대 높이 ~80px 이내)의
   발판 2개. 플레이어/test_enemy 시작 위치도 새 바닥 높이에 맞춰 y=616으로 조정.
@@ -75,14 +76,17 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 
 ## 배경 / 타일셋 / 공격 이펙트 (2026-09-20)
 
-### 배경 씬 (`_scenes/background.tscn`, `_scripts/background.tscn.gd`)
-- `_assets/sprites/tem_ai_assets/bg.png`를 `main.tscn`의 배경으로 사용하기 위해
+### 배경 씬 (현재 `world/backgrounds/background.tscn`, `world/backgrounds/background.gd`)
+- `assets/temporary/ai_generated/bg.png`(당시 `_assets/sprites/tem_ai_assets/bg.png`)를 배경으로 사용하기 위해
   전용 씬으로 분리 (Node2D 루트 + Sprite2D `body`).
 - 뷰포트 크기에 맞춰 이미지를 cover 방식(가로/세로 중 큰 배율)으로 스케일 + 중앙
   정렬하는 스크립트 포함. `get_viewport().size_changed` 시그널로 창 크기 변경에도 대응.
 - `main.tscn`에서 `game` 노드보다 먼저(형제 순서상 위) 배치해 항상 맨 뒤에 그려지도록 함.
+  (현재는 `CombatTest/World`의 첫 자식)
+- **주의 (2026-09-27 확인)**: 현재 `background.tscn`에는 이 스크립트가 연결되어 있지 않다.
+  배경은 레벨에 고정 위치(572, 405)로 배치된 Sprite2D로만 그려지고 cover 스케일은 동작하지 않는다.
 
-### 타일셋 투명 타일 (`_assets/sprites/combat_test_tileset.tres`)
+### 타일셋 투명 타일 (현재 `world/tiles/combat_test_tileset.tres`)
 - `tile_transparent.png`(완전 투명 32x32) 이미지를 새 `TileSetAtlasSource`(`sources/1`)로 추가.
 - **주의**: 최초 추가 시 충돌 폴리곤(`physics_layer_0/polygon_0`)을 빠뜨려서 플레이어가
   이 타일을 그냥 통과하는 버그가 있었음. Godot의 TileMap 충돌은 이미지 알파값이 아니라
@@ -91,7 +95,7 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - 현재 투명 타일은 기존 타일과 동일하게 32x32 정사각형 충돌체를 가짐 (보이지 않는
   발판/벽 용도로 사용 가능).
 
-### 공격 연출 추가 (`systems/player/player.gd`, `systems/combat/`)
+### 공격 연출 추가 (현재 `actors/player/player.gd`, `combat/effects/`)
 - 근접 공격 hitbox 활성화 시 `slash_effect.tscn`(보라색 초승달 참격)을 바라보는 방향에 스폰.
 - 타격 성공 시 `hit_spark.tscn`(보라색 히트 스파크)을 타격 지점에 스폰 + 카메라 쉐이크
   (`attack_hit_shake_strength`, `attack_hit_shake_duration` export로 조절 가능).
@@ -103,8 +107,13 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
   `_scenes/test_enemy.tscn`으로 이동 (CLAUDE.md의 `_scripts`/`_scenes` 명명 규칙 준수).
 - `systems/camera/camera_shake.gd(.uid)` → `_scripts/camera_shake.gd`로 이동.
 - 위 이동에 따라 `prototypes/`, `systems/camera/`는 다시 빈 디렉터리 상태로 복귀.
+- → 2026-09-27 Structure Refactor V0에서 폴더 구조 전체를 다시 정리함 (아래 섹션 참고).
 
 ## test_enemy 좌우 이동 시도 (2026-09-23, 손코딩 실험 — 미완성/버그 있음)
+
+> 이후 커밋 `0ac25b4`(충돌 레이어 재설계)에서 test_enemy가 `CharacterBody2D` + `move_and_slide()` +
+> 벽 충돌 시 방향 반전으로 바뀌었다. 아래는 당시 기록이며, 파일 경로도 당시 기준이다
+> (현재 `actors/enemies/test_enemy/`).
 
 오늘은 AI 도움 없이 손코딩으로 `test_enemy`에 좌우 이동을 붙여보려 한 실험.
 결과물은 동작은 하지만 로직이 상당히 엉성해서, 그대로 다음 세션에 넘기지 말고
@@ -142,6 +151,46 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, Forward+, Jolt Physics) 위에서
 - 요약: 겉보기엔 "적이 이리저리 움직인다"처럼 보일 수 있지만, 실은 고정된 한 방향으로만
   느릿느릿 흘러가다 맵을 벗어나는 코드에 가깝다. 다음 세션에서 AI 도움을 받아 방향 전환
   로직과 `CharacterBody2D` 기반 충돌 처리부터 다시 잡을 것.
+
+## Structure Refactor V0 (2026-09-27, 브랜치 `refactor/structure-v0`)
+
+프로토타입형 폴더/Scene 구조를 장기 프로젝트용 BASE 구조로 바꾼 1차 리팩토링.
+**새 기능/밸런스/전투 로직 변경 없음.** 구조 규칙은 `VOIDER_STRUCTURE_REFACTOR_V0.md`가 기준이다.
+
+### 바뀐 것
+- `_scenes/`, `_scripts/`, `systems/`, `prototypes/` 폐기 →
+  `app/ actors/ combat/ world/ levels/ camera/ toolkit/ core/ assets/` 축으로 재배치.
+- `main.tscn`(→ `app/main.tscn`)은 셸만 남기고, TileMap/Player/Enemy/배경은
+  `levels/combat_test/combat_test.tscn`으로 분리. Main = `CombatTest` 인스턴스 + `Toolkit`.
+- Windblast는 Player 고유 Ability라서 `actors/player/abilities/windblast/`,
+  Attack/CounterResult/RangedAttack/이펙트는 공용 전투 언어라서 `combat/`.
+- `_assets/` → `assets/` (characters / environment / temporary). 파일명은 유지, UID 불변.
+- 노드 이름 PascalCase 통일. Actor는 `Visual / BodyCollision / Combat(Hurtbox, AttackHitbox|AttackTimer)`.
+- 코드 변경은 참조 보존용 최소 수정만:
+  - NodePath / preload / `extends` 경로 갱신
+  - Hurtbox가 `Combat/` 아래로 가면서 피격 대상 조회 `area.get_parent()` → `area.owner`
+    (player.gd, windblast.gd. 임시 방식이며 Hurtbox 컴포넌트화 때 교체)
+  - 런타임 스폰을 `get_parent()` 대신 레벨의 `Projectiles` / `Effects` 컨테이너로
+    (`levels/level_containers.gd`. 컨테이너가 없으면 기존 부모로 fallback + 디버그 경고 1회)
+- `.DS_Store` 추적 중단 (`.gitignore`).
+
+### 검증
+- 리팩토링 전 커밋(`0ac25b4`)과 각 Phase에 같은 헤드리스 스모크 하네스(입력 주입)를 돌려 비교.
+  이동/점프/대쉬/근접 공격/카운터 성공·whiff/Pre-Signal(20f)/Counter Window(25f)/비행/
+  Windblast 다단히트(총 2 데미지)/적 이동/카메라 쉐이크/참격·스파크 생성/툴킷 HUD·일시정지·재시작/
+  충돌 레이어 전부 동일. 차이는 씬 이름과 스폰 부모(`game` → `Projectiles`/`Effects`)뿐.
+- 하네스는 저장소에 넣지 않았다. 체감(쉐이크 강도, 이펙트 모양)은 에디터 플레이로 확인할 것.
+
+### 일부러 고치지 않은 기존 문제
+- `PROJECT_AUDIT.md` §3 버그 목록 전부 (플레이어 피격 불가, 일시정지 중 `create_timer` 진행,
+  넉백 벽 관통, 카운터 대상 슬롯 1개 등).
+- `background.tscn`에 cover 스케일 스크립트가 연결되어 있지 않음.
+- `slash_effect.tscn`에 UID가 없어 경로로만 참조됨 (에디터에서 한 번 저장하면 부여됨).
+- `project.godot` 렌더러 설정 불일치 (`config/features`는 Forward Plus, 실제는 gl_compatibility).
+
+### V0.1 후보
+`VOIDER_STRUCTURE_REFACTOR_V0.md` §7 참고 (Camera 분리, 디버그 노드 자리, Projectile preset 완화,
+`area.owner` 제거, `CurrentLevel` 삽입 지점 재검토).
 
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
