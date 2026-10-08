@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+@AGENTS.md
+
+Shared development workflow, approval/risk policy, and Godot collaboration principles are defined there and apply here too. Use Claude Code's Plan Mode selectively for complex or high-risk work per that policy — it is not required for every task.
+
 ## Project overview
 
 Voider is a 2D side-scrolling action game built in Godot 4.7, grown out of the IBBD Prototype Base template. The current focus is the core combat loop (attack vs. counter, "카유공" = counter-inducing attacks). Design decisions, playtest results and history live in `PROGRESS.md`; a scored project audit (pre-refactor snapshot) is in `PROJECT_AUDIT.md`.
