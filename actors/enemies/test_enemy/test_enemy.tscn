@@ -3,13 +3,9 @@
 [ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://actors/enemies/test_enemy/test_enemy.gd" id="1_enemy"]
 [ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://assets/temporary/ai_generated/enemy.png" id="2_78io2"]
 [ext_resource type="PackedScene" uid="uid://dqj8v2n5x8k7a" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack_projectile.tscn" id="3_ranged_attack"]
+[ext_resource type="Script" uid="uid://d0v7cuhd24gh0" path="res://combat/components/health/health.gd" id="3_tgk2o"]
+[ext_resource type="Script" uid="uid://bx17y8ogjsb4r" path="res://combat/components/hurtbox/hurtbox.gd" id="4_duxgw"]
 [ext_resource type="Script" uid="uid://bqppld6km0ghg" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack_ability.gd" id="4_ranged_attack_ability"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
-size = Vector2(40, 60)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
-size = Vector2(40, 60)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dfdtf"]
 animations = [{
@@ -22,10 +18,15 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(40, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(40, 60)
+
 [node name="TestEnemy" type="CharacterBody2D" unique_id=1500168589]
 collision_layer = 4
 script = ExtResource("1_enemy")
-max_health = 99
 
 [node name="Visual" type="Node2D" parent="." unique_id=1360378445]
 
@@ -39,10 +40,16 @@ shape = SubResource("RectangleShape2D_body")
 
 [node name="Combat" type="Node2D" parent="." unique_id=2046318251]
 
-[node name="Hurtbox" type="Area2D" parent="Combat" unique_id=1131159925]
+[node name="Health" type="Node" parent="Combat" unique_id=192649348]
+script = ExtResource("3_tgk2o")
+max_hp = 990
+
+[node name="Hurtbox" type="Area2D" parent="Combat" unique_id=1131159925 node_paths=PackedStringArray("health")]
 collision_layer = 16
 collision_mask = 0
 monitoring = false
+script = ExtResource("4_duxgw")
+health = NodePath("../Health")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/Hurtbox" unique_id=1480276193]
 shape = SubResource("RectangleShape2D_hurtbox")

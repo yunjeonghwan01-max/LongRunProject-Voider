@@ -19,7 +19,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 |---|---|---|
 | `app/` | 게임 최상위 Shell. Level 콘텐츠를 직접 두지 않는다 | `main.tscn`, `main.gd` |
 | `actors/` | 자기 상태를 가지고 행동하는 존재 | `player/`, `enemies/test_enemy/` |
-| `combat/` | Player/Enemy 어느 한쪽에 종속되지 않는 **공용 전투 언어** | `counter/`, `effects/` |
+| `combat/` | Player/Enemy 어느 한쪽에 종속되지 않는 **공용 전투 언어** | `components/` (`hitbox/`, `hurtbox/`, `health/`), `counter/`, `effects/` |
 | `world/` | 살아 있지 않은 World Object / World 리소스 | `backgrounds/`, `tiles/` |
 | `levels/` | 실제 게임 공간 | `combat_test/`, `level_containers.gd` |
 | `camera/` | Camera 공용 기능 | `camera_shake.gd` |
@@ -32,7 +32,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 
 - `ui/` (`hud/`, `menus/`, `dialogue/`, `transitions/`): 플레이어용 UI
 - `managers/`: **게임 전체 범위**의 상태/흐름을 실제로 조율하는 고수준 관리자 (GameManager, SceneManager, SaveManager, AudioManager 등). `EnemyManager`, `DoorManager` 같은 객체별 Manager는 만들지 않는다. Manager는 `core/`가 아니다.
-- `combat/components/` (`hitbox/`, `hurtbox/`, `health/`), `combat/projectiles/`
+- `combat/projectiles/`
 - `world/platforms|hazards|interactables|props/`, `actors/npcs/`
 
 ### 판단 기준
@@ -69,7 +69,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 ActorRoot (CharacterBody2D)
 ├── Visual          보이는 요소. 좌우 반전은 여기서만 (판정 노드를 뒤집지 않는다)
 ├── BodyCollision   Actor ↔ World 물리 충돌. Hitbox/Hurtbox와 별개
-├── Combat          Hurtbox, AttackHitbox, Ability 노드(Counter, MeleeAttack 등), 공격 관련 Timer 등
+├── Combat          Health, Hurtbox, Ability 노드(Counter, MeleeAttack/AttackHitbox 등), 공격 관련 Timer 등
 ├── Sensors         감지만 한다. 판단/행동은 Actor/State가 한다
 ├── Components      재사용 가치가 실제로 있는 행동 Component
 └── Audio
@@ -86,6 +86,22 @@ Interactable:  Root ├ Visual ├ InteractionArea └ Components
 Projectile:    Root ├ Visual ├ Hitbox ├ Collision(optional) └ Lifetime
 Attack:        Root ├ Hitbox ├ Visual(optional) └ Lifetime
 ```
+
+### 타격 / 피격 문법 (Hitbox → Hurtbox → Health)
+
+모든 데미지는 이 한 경로로만 흐른다. `combat/components/`.
+
+```text
+HitboxComponent (Area2D)  ──area_entered──▶  HurtboxComponent (Area2D)  ──▶  HealthComponent (Node)
+  damage, source, knockback                    receive_hit(damage, source, knockback)    hp, take_damage()
+  reset_hits() 사이 같은 Hurtbox 1회             hit_received 시그널 → Actor 반응           damaged / died 시그널
+  hit_landed 시그널 → 공격 쪽 연출               invincibility_duration                    died → Actor가 처리
+```
+
+- 공격 쪽은 `HitboxComponent`를 가진다. 판정 on/off는 `monitoring`으로, 중복 방지는 Hitbox가 한다.
+  다단히트처럼 공격 쪽이 타이밍/데미지를 직접 정하면 `apply_on_contact = false`로 두고 `hurtbox_entered`를 받아 `receive_hit()`을 직접 호출한다.
+- 맞는 쪽은 `Combat/Health` + `Combat/Hurtbox`(→ `health` 연결)를 가진다. Actor 스크립트는 `take_damage()`를 갖지 않고 시그널로만 반응한다.
+- 피격 대상을 `area.owner` / `has_method()`로 찾지 않는다. `HurtboxComponent` 타입으로 판별한다.
 
 ### Level
 
@@ -138,10 +154,11 @@ Player (CharacterBody2D)                      layer player_body, mask world
 │   └── AnimatedSprite2D
 ├── BodyCollision (CollisionShape2D)
 ├── Combat (Node2D)                           Ability 노드는 각자 입력을 받는다. 트리 순서 = 처리 순서
-│   ├── Hurtbox (Area2D) └ CollisionShape2D          layer player_hurtbox
+│   ├── Health (Node, HealthComponent)               max_hp 100
+│   ├── Hurtbox (Area2D, HurtboxComponent) └ CollisionShape2D   layer player_hurtbox, 무적 0.5s
 │   ├── Counter (Node, PlayerCounter)                abilities/counter/
 │   ├── MeleeAttack (Node2D, MeleeAttack)            abilities/melee_attack/
-│   │   └── AttackHitbox (Area2D) └ CollisionShape2D layer player_attack, mask enemy_hurtbox
+│   │   └── AttackHitbox (Area2D, HitboxComponent) └ CollisionShape2D   layer player_attack, mask enemy_hurtbox
 │   └── WindblastAbility (Node, WindblastAbility)    abilities/windblast/
 ├── Camera (Camera2D, CameraShake)            group player_camera
 └── StatusLabel (Label, StatusLabel)
@@ -150,16 +167,20 @@ TestEnemy (CharacterBody2D)                   layer enemy_body, mask world
 ├── Visual (Node2D) └ AnimatedSprite2D        (반전/플래시는 기존대로 스프라이트에 적용)
 ├── BodyCollision (CollisionShape2D)
 └── Combat (Node2D)
-    ├── Hurtbox (Area2D) └ CollisionShape2D          layer enemy_hurtbox
+    ├── Health (Node, HealthComponent)               max_hp 990
+    ├── Hurtbox (Area2D, HurtboxComponent) └ CollisionShape2D   layer enemy_hurtbox
     └── RangedAttackAbility (Node, RangedAttackAbility)   abilities/ranged_attack/
         └── AttackTimer (Timer)
 
-WindblastProjectile (Area2D)                  actors/player/abilities/windblast/
-├── CollisionShape2D                          layer player_attack, mask world + enemy_hurtbox
-└── Visual └ Polygon2D
+WindblastProjectile (Node2D)                  actors/player/abilities/windblast/
+├── Visual └ Polygon2D
+├── Hitbox (Area2D, HitboxComponent) └ CollisionShape2D   layer player_attack, mask enemy_hurtbox
+└── Collision (Area2D) └ CollisionShape2D     layer 0, mask world (지형에 닿으면 소멸)
 
 RangedAttackProjectile (Node2D, extends CounterableAttack)   actors/enemies/test_enemy/abilities/ranged_attack/
-└── Visual └ Polygon2D
+├── Visual └ Polygon2D
+├── Hitbox (Area2D, HitboxComponent) └ CollisionShape2D   layer enemy_attack, mask player_hurtbox (비행 중에만 on)
+└── Collision (Area2D) └ CollisionShape2D     layer 0, mask world (비행 중에만 on)
 
 SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/
 ```
@@ -172,14 +193,11 @@ SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/
 |---|---|---|
 | `BodyCollision` | 컨테이너가 아니라 `CollisionShape2D` 노드 자체의 이름 | CharacterBody2D의 충돌 모양은 직계 자식이어야 동작한다 |
 | `Camera`, `StatusLabel` | Vocabulary에 없는 노드지만 Player 루트에 유지 | 새 Vocabulary를 억지로 만들지 않음. `StatusLabel`은 `Visual` 아래에 두면 반전 때 글자가 뒤집힌다 |
-| `WindblastProjectile` | 루트 자체가 Hitbox(Area2D). `Hitbox` 자식/`Lifetime` 노드 없음 | 기존 signal/damage 동작 보존. Lifetime은 스크립트 변수 |
-| `RangedAttackProjectile` | Hitbox 없음, 거리(`hit_distance`)로 명중 판정 | 기존 설계. 데미지 파이프라인 작업 때 정리 |
-| 피격 대상 조회 | `area.owner` (Hurtbox가 `Combat/` 아래에 있으므로 씬 루트) | V0 동작 보존용 최소 수정. **영구 표준 아님** — Hurtbox 컴포넌트화 때 교체 |
+| Projectile `Lifetime` | 노드가 아니라 스크립트 변수(`max_lifetime`) | 별도 노드가 필요할 만큼의 로직이 아직 없다 |
+| Projectile `Collision` | layer 0이지만 `monitorable`은 켜 둔다 | `monitorable = false`인 Area2D는 TileMap 바디를 감지하지 못한다 (Godot 4.7 확인) |
 
 ## 7. V0.1 후보
 
 - Camera를 Player에서 분리 (Level/Camera rig 소유). 현재 `$Camera` 직접 참조와 `player_camera` 그룹 조회가 공존
 - 디버그 표시용 노드(`StatusLabel` 등)의 자리 (`Debug` 슬롯 여부)
-- Projectile preset을 "루트가 Area2D인 투사체"까지 포함하도록 완화할지, Hitbox 자식으로 맞출지
-- Hitbox/Hurtbox 컴포넌트화 후 `area.owner` 조회 제거
 - `CurrentLevel` 삽입 지점은 런타임 Level 교체가 생길 때 재검토

@@ -12,10 +12,12 @@ class_name CollisionLayers
 ## | 1      | world           | TileMapLayer (지형/벽)          | -                   |
 ## | 2      | player_body     | Player (CharacterBody2D)        | WORLD               |
 ## | 3      | enemy_body      | TestEnemy (CharacterBody2D)     | WORLD               |
-## | 4      | player_attack   | Player/Combat/MeleeAttack/AttackHitbox, WindblastProjectile | ENEMY_HURTBOX (+WORLD: windblast 소멸용) |
-## | 5      | enemy_hurtbox   | TestEnemy/Combat/Hurtbox (Area2D) | 0                 |
-## | 6      | player_hurtbox  | Player/Combat/Hurtbox (Area2D)  | 0                   |
-## | 7      | enemy_attack    | (예약) 적 근접/투사체 판정       | PLAYER_HURTBOX      |
+## | 4      | player_attack   | Player/Combat/MeleeAttack/AttackHitbox, WindblastProjectile/Hitbox | ENEMY_HURTBOX |
+## | 5      | enemy_hurtbox   | TestEnemy/Combat/Hurtbox (HurtboxComponent) | 0       |
+## | 6      | player_hurtbox  | Player/Combat/Hurtbox (HurtboxComponent) | 0          |
+## | 7      | enemy_attack    | RangedAttackProjectile/Hitbox   | PLAYER_HURTBOX      |
+##
+## 투사체의 지형 소멸용 `Collision` Area2D는 layer 0, mask WORLD (감지만 하고 감지당하지 않는다).
 
 const WORLD := 1 << 0
 const PLAYER_BODY := 1 << 1

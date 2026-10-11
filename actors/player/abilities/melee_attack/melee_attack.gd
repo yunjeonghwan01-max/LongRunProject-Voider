@@ -7,7 +7,6 @@ extends Node2D
 @export var startup_duration: float = 0.08
 @export var active_duration: float = 0.12
 @export var recovery_duration: float = 0.25
-@export var damage: int = 1
 @export var hitbox_offset: float = 28.0
 @export var move_speed_scale: float = 1.0  ## 공격 중 Player 이동 속도 배율
 
@@ -19,10 +18,9 @@ extends Node2D
 
 var is_attacking: bool = false
 var can_attack: bool = true
-var _hit_targets: Array = []
 
 @onready var _player: Player = owner as Player
-@onready var _hitbox: Area2D = $AttackHitbox
+@onready var _hitbox: HitboxComponent = $AttackHitbox  ## 데미지는 AttackHitbox(HitboxComponent)의 damage
 @onready var _hitbox_shape: CollisionShape2D = $AttackHitbox/CollisionShape2D
 
 
@@ -30,7 +28,7 @@ func _ready() -> void:
 	for scene_name in ["slash_effect_scene", "hit_spark_scene"]:
 		if get(scene_name) == null:
 			push_warning("[MeleeAttack] %s is not assigned in the scene" % scene_name)
-	_hitbox.area_entered.connect(_on_hitbox_area_entered)
+	_hitbox.hit_landed.connect(_on_hitbox_hit_landed)
 	update_facing(_player.facing_direction)
 
 
@@ -48,7 +46,7 @@ func update_facing(facing_direction: int) -> void:
 func _start_attack() -> void:
 	is_attacking = true
 	can_attack = false
-	_hit_targets.clear()
+	_hitbox.reset_hits()
 	print("ATTACK START")
 
 	await get_tree().create_timer(startup_duration).timeout
@@ -90,26 +88,15 @@ func _deactivate_hitbox() -> void:
 	_hitbox_shape.disabled = true
 
 
-## 한 번의 공격 active time 동안 같은 대상은 한 번만 타격한다.
-## Hurtbox는 Actor의 Combat/ 아래에 있으므로 씬 루트(owner)를 피격 대상으로 본다.
-## (Structure Refactor V0의 동작 보존용 최소 수정. Hurtbox 컴포넌트화 전까지의 임시 조회 방식)
-func _on_hitbox_area_entered(area: Area2D) -> void:
-	var target := area.owner
-	if target == null or target in _hit_targets:
-		return
-
-	_hit_targets.append(target)
-
+## 명중 판정과 같은 대상 중복 방지는 AttackHitbox(HitboxComponent)가 처리한다. 여기서는 연출만.
+func _on_hitbox_hit_landed(hurtbox: HurtboxComponent) -> void:
 	print("PLAYER ATTACK HIT")
-	print("Target: %s" % target.name)
-	print("Damage: %d" % damage)
+	print("Target: %s" % hurtbox.owner.name)
+	print("Damage: %d" % _hitbox.damage)
 
-	_spawn_hit_spark(area.global_position)
+	_spawn_hit_spark(hurtbox.global_position)
 	if _player.camera:
 		_player.camera.shake(hit_shake_strength, hit_shake_duration)
-
-	if target.has_method("take_damage"):
-		target.take_damage(damage, _player)
 
 
 ## 타격 지점에 보라색 히트 스파크를 스폰해 타격감을 명확히 드러낸다.
