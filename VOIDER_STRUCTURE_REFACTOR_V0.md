@@ -37,7 +37,8 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 
 ### 판단 기준
 
-- **누가 / 왜** 이 공격을 쓰는가 → `actors/<actor>/abilities/` (예: Player 고유 `Windblast`, TestEnemy 고유 `RangedAttack`)
+- **누가 / 왜** 이 공격을 쓰는가 → `actors/<actor>/abilities/` (예: Player 고유 `windblast/`, TestEnemy 고유 `ranged_attack/`)
+  - Ability 폴더 하나가 기술 전체를 담는다: 사용하는 쪽 `<name>_ability.gd` (Actor의 `Combat/` 아래 노드: 입력/발동 조건, 쿨다운, 스폰) + 스폰되는 쪽 `<name>_projectile.gd/.tscn` 등. 스폰물이 없는 기술(카운터, 근접공격)은 노드 스크립트 하나만 둔다.
   - 사용처가 하나뿐이면 그 Actor 아래에 둔다. 두 번째 사용처가 실제로 생기면 그때 `combat/`으로 올린다 (복제하지 않는다 — `class_name` 중복)
 - 공격과 피격 **자체가 어떻게** 작동하는가 → `combat/` (예: `CounterableAttack.try_counter()`, `CounterResult`)
 - Raw 이미지/오디오 → `assets/`, 그것을 사용하는 Godot 리소스(`.tres`)는 사용하는 쪽 (예: TileSet → `world/tiles/`)
@@ -68,7 +69,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 ActorRoot (CharacterBody2D)
 ├── Visual          보이는 요소. 좌우 반전은 여기서만 (판정 노드를 뒤집지 않는다)
 ├── BodyCollision   Actor ↔ World 물리 충돌. Hitbox/Hurtbox와 별개
-├── Combat          Hurtbox, AttackHitbox, 공격 관련 Timer 등
+├── Combat          Hurtbox, AttackHitbox, Ability 노드(Counter, MeleeAttack 등), 공격 관련 Timer 등
 ├── Sensors         감지만 한다. 판단/행동은 Actor/State가 한다
 ├── Components      재사용 가치가 실제로 있는 행동 Component
 └── Audio
@@ -135,24 +136,28 @@ Player (CharacterBody2D)                      layer player_body, mask world
 │   ├── FacingArrow (Polygon2D)
 │   └── AnimatedSprite2D
 ├── BodyCollision (CollisionShape2D)
-├── Combat (Node2D)
+├── Combat (Node2D)                           Ability 노드는 각자 입력을 받는다. 트리 순서 = 처리 순서
 │   ├── Hurtbox (Area2D) └ CollisionShape2D          layer player_hurtbox
-│   └── AttackHitbox (Area2D) └ CollisionShape2D     layer player_attack, mask enemy_hurtbox
+│   ├── Counter (Node, PlayerCounter)                abilities/counter/
+│   ├── MeleeAttack (Node2D, MeleeAttack)            abilities/melee_attack/
+│   │   └── AttackHitbox (Area2D) └ CollisionShape2D layer player_attack, mask enemy_hurtbox
+│   └── WindblastAbility (Node, WindblastAbility)    abilities/windblast/
 ├── Camera (Camera2D, CameraShake)            group player_camera
-└── StatusLabel (Label)
+└── StatusLabel (Label, StatusLabel)
 
 TestEnemy (CharacterBody2D)                   layer enemy_body, mask world
 ├── Visual (Node2D) └ AnimatedSprite2D        (반전/플래시는 기존대로 스프라이트에 적용)
 ├── BodyCollision (CollisionShape2D)
 └── Combat (Node2D)
     ├── Hurtbox (Area2D) └ CollisionShape2D          layer enemy_hurtbox
-    └── AttackTimer (Timer)
+    └── RangedAttackAbility (Node, RangedAttackAbility)   abilities/ranged_attack/
+        └── AttackTimer (Timer)
 
-Windblast (Area2D)                            actors/player/abilities/windblast/
+WindblastProjectile (Area2D)                  actors/player/abilities/windblast/
 ├── CollisionShape2D                          layer player_attack, mask world + enemy_hurtbox
 └── Visual └ Polygon2D
 
-RangedAttack (Node2D, extends CounterableAttack) actors/enemies/test_enemy/abilities/ranged_attack/
+RangedAttackProjectile (Node2D, extends CounterableAttack)   actors/enemies/test_enemy/abilities/ranged_attack/
 └── Visual └ Polygon2D
 
 SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/
@@ -166,8 +171,8 @@ SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/
 |---|---|---|
 | `BodyCollision` | 컨테이너가 아니라 `CollisionShape2D` 노드 자체의 이름 | CharacterBody2D의 충돌 모양은 직계 자식이어야 동작한다 |
 | `Camera`, `StatusLabel` | Vocabulary에 없는 노드지만 Player 루트에 유지 | 새 Vocabulary를 억지로 만들지 않음. `StatusLabel`은 `Visual` 아래에 두면 반전 때 글자가 뒤집힌다 |
-| `Windblast` | 루트 자체가 Hitbox(Area2D). `Hitbox` 자식/`Lifetime` 노드 없음 | 기존 signal/damage 동작 보존. Lifetime은 스크립트 변수 |
-| `RangedAttack` | Hitbox 없음, 거리(`hit_distance`)로 명중 판정 | 기존 설계. 데미지 파이프라인 작업 때 정리 |
+| `WindblastProjectile` | 루트 자체가 Hitbox(Area2D). `Hitbox` 자식/`Lifetime` 노드 없음 | 기존 signal/damage 동작 보존. Lifetime은 스크립트 변수 |
+| `RangedAttackProjectile` | Hitbox 없음, 거리(`hit_distance`)로 명중 판정 | 기존 설계. 데미지 파이프라인 작업 때 정리 |
 | 피격 대상 조회 | `area.owner` (Hurtbox가 `Combat/` 아래에 있으므로 씬 루트) | V0 동작 보존용 최소 수정. **영구 표준 아님** — Hurtbox 컴포넌트화 때 교체 |
 
 ## 7. V0.1 후보

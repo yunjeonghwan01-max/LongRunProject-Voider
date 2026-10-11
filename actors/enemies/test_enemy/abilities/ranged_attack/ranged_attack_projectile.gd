@@ -1,4 +1,4 @@
-class_name RangedAttack
+class_name RangedAttackProjectile
 extends CounterableAttack
 
 ## 원거리 counterable attack.

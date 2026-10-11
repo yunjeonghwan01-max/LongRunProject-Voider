@@ -208,6 +208,23 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, 실제 렌더러는 Compatibility) �
   `@export var ...: PackedScene` + `.tscn`에서 지정. 미지정 시 `_ready`에서 경고.
 - 동작 변경 없음.
 
+## Player / TestEnemy Ability 분리 (2026-10-11, 브랜치 `refactor/player-abilities`)
+
+- `player.gd`(301줄)를 이동/점프/대쉬/방향만 남기고 전투 기능을 `Combat/` 아래 Ability 노드로 분리:
+  `Counter`(`PlayerCounter`), `MeleeAttack`(`AttackHitbox`를 자식으로 소유), `WindblastAbility`.
+  머리 위 상태 텍스트는 `StatusLabel` 노드 자체 스크립트(`status_label.gd`).
+- Ability 노드가 각자 입력을 읽는다 (Player가 입력을 라우팅하지 않음). Player → 자식 순서로
+  physics 처리되므로 기존 한 함수 안의 처리 순서(이동 → 대쉬 → 카운터 → 공격 → 장풍)가 그대로 유지된다.
+- `set_counter_target` / `clear_counter_target`는 Player에 남겨 `Counter`로 위임 (카운터 공격 쪽 계약 불변).
+- Ability 폴더 = 기술 전체: `windblast/`에 `windblast_ability.gd` 추가, 투사체는 `windblast_projectile.*`
+  (`Windblast` → `WindblastProjectile`). TestEnemy도 같은 규칙으로 `RangedAttackAbility`(+`AttackTimer`) 분리,
+  `ranged_attack.*` → `ranged_attack_projectile.*` (`RangedAttack` → `RangedAttackProjectile`).
+- Windblast 발사 쉐이크 하드코딩 `shake(2.0, 0.15)` → `fire_shake_strength/duration` export (값 동일).
+- 검증: 입력 주입 하네스로 리팩토링 전(HEAD)/후를 같은 시나리오(근접 whiff/hit, 카운터 whiff/후딜 차단/성공,
+  장풍 발사/쿨다운 차단/다단히트, 방향 전환)로 420프레임 돌려 로그·위치·속도·상태 텍스트가 완전히 동일.
+- 남은 기존 문제: 장풍 반동(`velocity.x -= recoil`)이 다음 프레임 이동 처리에 덮여 사실상 무효,
+  `MeleeAttack`의 `can_attack`/`is_attacking` 중복.
+
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
 - 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현

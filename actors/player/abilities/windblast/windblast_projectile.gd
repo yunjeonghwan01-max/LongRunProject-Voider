@@ -1,4 +1,4 @@
-class_name Windblast
+class_name WindblastProjectile
 extends Area2D
 
 ## Hollow Knight의 Vengeful Spirit과 유사한 전방 직선 관통 투사체.

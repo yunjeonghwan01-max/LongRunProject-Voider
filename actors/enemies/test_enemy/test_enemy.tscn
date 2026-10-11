@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://actors/enemies/test_enemy/test_enemy.gd" id="1_enemy"]
 [ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://assets/temporary/ai_generated/enemy.png" id="2_78io2"]
-[ext_resource type="PackedScene" uid="uid://dqj8v2n5x8k7a" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack.tscn" id="3_ranged_attack"]
+[ext_resource type="PackedScene" uid="uid://dqj8v2n5x8k7a" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack_projectile.tscn" id="3_ranged_attack"]
+[ext_resource type="Script" uid="uid://bqppld6km0ghg" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack_ability.gd" id="4_ranged_attack_ability"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(40, 60)
@@ -24,7 +25,6 @@ animations = [{
 [node name="TestEnemy" type="CharacterBody2D" unique_id=1500168589]
 collision_layer = 4
 script = ExtResource("1_enemy")
-ranged_attack_scene = ExtResource("3_ranged_attack")
 max_health = 99
 
 [node name="Visual" type="Node2D" parent="." unique_id=1360378445]
@@ -47,5 +47,9 @@ monitoring = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/Hurtbox" unique_id=1480276193]
 shape = SubResource("RectangleShape2D_hurtbox")
 
-[node name="AttackTimer" type="Timer" parent="Combat" unique_id=914661955]
+[node name="RangedAttackAbility" type="Node" parent="Combat" unique_id=513412517]
+script = ExtResource("4_ranged_attack_ability")
+projectile_scene = ExtResource("3_ranged_attack")
+
+[node name="AttackTimer" type="Timer" parent="Combat/RangedAttackAbility" unique_id=914661955]
 wait_time = 2.5

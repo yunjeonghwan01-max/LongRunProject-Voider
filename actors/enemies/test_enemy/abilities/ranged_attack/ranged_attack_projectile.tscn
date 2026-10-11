@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dqj8v2n5x8k7a"]
 
-[ext_resource type="Script" uid="uid://bbg5ee4rsg8q4" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack.gd" id="1_ranged"]
+[ext_resource type="Script" uid="uid://bbg5ee4rsg8q4" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack_projectile.gd" id="1_ranged"]
 
-[node name="RangedAttack" type="Node2D" unique_id=978153768]
+[node name="RangedAttackProjectile" type="Node2D" unique_id=978153768]
 script = ExtResource("1_ranged")
 
 [node name="Visual" type="Node2D" parent="." unique_id=344427041]

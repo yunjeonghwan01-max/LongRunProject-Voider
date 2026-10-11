@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://c3wq8t2n7yb5x"]
 
-[ext_resource type="Script" uid="uid://blr38gk0666sf" path="res://actors/player/abilities/windblast/windblast.gd" id="1_windblast"]
+[ext_resource type="Script" uid="uid://blr38gk0666sf" path="res://actors/player/abilities/windblast/windblast_projectile.gd" id="1_windblast"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_windblast"]
 size = Vector2(44, 16)
 
-[node name="Windblast" type="Area2D" unique_id=1139510944]
+[node name="WindblastProjectile" type="Area2D" unique_id=1139510944]
 collision_layer = 8
 collision_mask = 17
 monitorable = false

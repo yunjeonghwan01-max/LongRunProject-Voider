@@ -1,14 +1,13 @@
+class_name TestEnemy
 extends CharacterBody2D
 
 ## 카운터 시스템 검증용 최소 테스트 적.
-## 좌우로 이동하다 벽(WORLD)에 닿으면 방향을 바꾸고, 일정 주기로 원거리 counterable attack을 발동한다.
+## 좌우로 이동하다 벽(WORLD)에 닿으면 방향을 바꾼다. 원거리 counterable attack은 Combat/RangedAttackAbility가 발동한다.
 ##
 ## 충돌 노드 분리 (레이어 정의: core/physics/collision_layers.gd)
 ##   - BodyCollision: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
 ##   - Combat/Hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
-@export var ranged_attack_scene: PackedScene
-@export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
 @export var move_speed = 100
 @export var max_health: int = 3
@@ -18,17 +17,11 @@ var _knockback_tween: Tween = null
 var _flash_tween: Tween = null
 var _body_original_modulate: Color
 
-@onready var _attack_timer: Timer = $Combat/AttackTimer
 @onready var _body: AnimatedSprite2D = $Visual/AnimatedSprite2D
 
 
 func _ready() -> void:
 	health = max_health
-	if ranged_attack_scene == null:
-		push_warning("[TestEnemy] ranged_attack_scene is not assigned in the scene")
-	_attack_timer.wait_time = attack_interval
-	_attack_timer.timeout.connect(_on_attack_timer_timeout)
-	_attack_timer.start()
 	if _body:
 		_body_original_modulate = _body.modulate
 func _physics_process(delta):
@@ -77,24 +70,6 @@ func _apply_knockback(knockback: Vector2) -> void:
 	_knockback_tween.tween_property(self, "position", target_position, 0.12) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-
-func _on_attack_timer_timeout() -> void:
-	var player := get_tree().get_first_node_in_group("player")
-	if player == null:
-		return
-	_spawn_ranged_attack(player)
-
-
-func _spawn_ranged_attack(player: Node2D) -> void:
-	if ranged_attack_scene == null:
-		return
-
-	var attack: RangedAttack = ranged_attack_scene.instantiate()
-	attack.attacker = self
-	attack.facing_direction = facing_direction
-	attack.target_player = player
-	attack.global_position = global_position
-	LevelContainers.projectiles(self).add_child(attack)
 
 func change_facing_dir():
 	facing_direction = -facing_direction

@@ -30,7 +30,7 @@ There are no automated tests in this repo.
 The structure rules (folder responsibilities, file/node naming, Scene Tree vocabulary, engine-constraint exceptions) are defined in **`VOIDER_STRUCTURE_REFACTOR_V0.md`**. Follow it when adding files or nodes, and update it when the structure changes.
 
 - `app/` — top-level shell (`main.tscn`: current level instance + toolkit). No level content here.
-- `actors/` — things with their own state and behavior: `player/` (incl. `abilities/windblast/`), `enemies/test_enemy/` (incl. `abilities/ranged_attack/`).
+- `actors/` — things with their own state and behavior: `player/` (incl. `abilities/counter|melee_attack|windblast/`), `enemies/test_enemy/` (incl. `abilities/ranged_attack/`). An ability folder holds the whole skill: the `<name>_ability.gd` node under the actor's `Combat/` (input, cooldown, spawning) plus what it spawns (`<name>_projectile.*`).
 - `combat/` — shared combat language not owned by one actor: `counter/` (`CounterableAttack`, `CounterResult`), `effects/` (`SlashEffect`, `HitSpark`).
 - `world/` — non-actor world objects/resources: `backgrounds/`, `tiles/` (TileSet).
 - `levels/` — playable spaces: `combat_test/combat_test.tscn`, plus `level_containers.gd` (runtime spawn-container lookup).
@@ -48,9 +48,9 @@ Conventions: a scene and its script share a basename (`player.tscn` + `player.gd
 
 `levels/combat_test/combat_test.tscn` holds `World` (background + `PlatformTileMap`), `Actors` (Player, TestEnemy), and the runtime containers `Projectiles` / `Effects` (groups `level_projectiles` / `level_effects`). Actors spawn projectiles/effects via `LevelContainers.projectiles(self)` / `LevelContainers.effects(self)`; without a level (e.g. running an actor scene alone) it falls back to the spawner's parent and warns once in debug builds.
 
-Actors follow the V0 vocabulary: `Visual` (only this flips with facing), `BodyCollision` (the `CollisionShape2D` itself — must be a direct child of the body), `Combat` (`Hurtbox`, `AttackHitbox`, attack timers). Attacks find their target through the hurtbox's `owner` (the actor root); this is a stop-gap until hitbox/hurtbox components exist.
+Actors follow the V0 vocabulary: `Visual` (only this flips with facing), `BodyCollision` (the `CollisionShape2D` itself — must be a direct child of the body), `Combat` (`Hurtbox` plus ability nodes such as `Counter`, `MeleeAttack/AttackHitbox`, `WindblastAbility`; each ability reads its own input, in tree order). The player root keeps movement/jump/dash/facing and the `set_counter_target`/`clear_counter_target` entry points used by counterable attacks. Attacks find their target through the hurtbox's `owner` (the actor root); this is a stop-gap until hitbox/hurtbox components exist.
 
-Combat principles to preserve: `CounterableAttack.try_counter()` — the attack judges counters itself and succeeds at most once; `RangedAttack` runs Pre-Signal → Counter Window → Flight; `Windblast` pierces with independent per-target multi-hit and distributes total damage; `CameraShake` never lets a weaker request override a stronger active shake.
+Combat principles to preserve: `CounterableAttack.try_counter()` — the attack judges counters itself and succeeds at most once; `RangedAttackProjectile` runs Pre-Signal → Counter Window → Flight; `WindblastProjectile` pierces with independent per-target multi-hit and distributes total damage; `CameraShake` never lets a weaker request override a stronger active shake.
 
 Physics layers are named in `project.godot` and mirrored as constants in `core/physics/collision_layers.gd` (world, player_body, enemy_body, player_attack, enemy_hurtbox, player_hurtbox, enemy_attack). Bodies mask only `world`; attack areas mask the opposing hurtbox layer.
 
