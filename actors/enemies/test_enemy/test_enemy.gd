@@ -6,43 +6,44 @@ extends CharacterBody2D
 ##
 ## 충돌 노드 분리 (레이어 정의: core/physics/collision_layers.gd)
 ##   - BodyCollision: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
-##   - Combat/Hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
+##   - Combat/Hurtbox (HurtboxComponent): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
+##   - Combat/Health (HealthComponent): 체력. 피격 반응/사망 처리는 이 스크립트가 시그널로 받는다.
 
 @export var facing_direction: Vector2 = Vector2.LEFT
 @export var move_speed = 100
-@export var max_health: int = 3
-var health: int
 
 var _knockback_tween: Tween = null
 var _flash_tween: Tween = null
 var _body_original_modulate: Color
 
 @onready var _body: AnimatedSprite2D = $Visual/AnimatedSprite2D
+@onready var _hurtbox: HurtboxComponent = $Combat/Hurtbox
+@onready var _health: HealthComponent = $Combat/Health
 
 
 func _ready() -> void:
-	health = max_health
 	if _body:
 		_body_original_modulate = _body.modulate
+	_hurtbox.hit_received.connect(_on_hit_received)
+	_health.died.connect(_on_died)
+
+
 func _physics_process(delta):
 	_move(delta)
 
 
-## 플레이어 근접 공격 HitBox / 장풍 등이 hurtbox에 닿았을 때 호출된다.
-## 별도의 체력 시스템이 없으므로 최소한의 health 감소 + 로그만 처리한다.
+## 플레이어 근접 공격 / 장풍 등이 Hurtbox에 닿았을 때의 반응. HP 감소는 Health가 처리한다.
 ## knockback이 주어지면(넉백 벡터, 픽셀 단위 변위) 살짝 밀려나는 연출을 적용한다.
-func take_damage(amount: int, _source: Node, knockback: Vector2 = Vector2.ZERO) -> void:
-	health -= amount
-	print("[Enemy] %s took %d damage (health=%d/%d)" % [name, amount, health, max_health])
-
+func _on_hit_received(_damage: int, _source: Node, knockback: Vector2) -> void:
 	_flash_hit()
 
 	if knockback != Vector2.ZERO:
 		_apply_knockback(knockback)
 
-	if health <= 0:
-		print("[Enemy] %s defeated" % name)
-		queue_free()
+
+func _on_died() -> void:
+	print("[Enemy] %s defeated" % name)
+	queue_free()
 
 
 ## 피격 시 스프라이트 modulate를 순간 밝게 올렸다가 원래 값으로 되돌려, 타격을 눈에 띄게 드러낸다.

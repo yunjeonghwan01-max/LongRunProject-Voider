@@ -5,11 +5,14 @@ extends CounterableAttack
 ## 발동 시점에 방향(내적) + 시야(raycast)를 검사해 counter 후보로 삼을지 결정한다.
 ## 후보가 되면 counter window를 열고(flash 포함) 창이 닫힐 때까지 제자리에서 대기한 뒤,
 ## 카운터되지 않았다면 그때부터 플레이어를 향해 날아간다.
+##
+## 명중은 Hitbox(HitboxComponent → 플레이어 Hurtbox)로 판정하고, Collision은 지형에 닿으면 소멸시킨다.
+## 둘 다 비행 중에만 켠다 (카운터 대기 중 근처의 플레이어가 맞지 않도록). 데미지는 Hitbox의 damage.
+## Collision은 layer 0 + monitorable 유지 (monitorable을 끄면 TileMap 바디를 감지하지 못한다).
 
 @export var speed: float = 350.0
 @export var max_lifetime: float = 4.0
 @export var direction_dot_threshold: float = 0.4
-@export var hit_distance: float = 20.0
 @export_flags_2d_physics var los_collision_mask: int = CollisionLayers.WORLD  # 시야는 지형만 가린다
 
 @export_group("Pre-Signal")
@@ -25,6 +28,8 @@ var _is_flying: bool = false
 var _lifetime_elapsed: float = 0.0
 
 @onready var _visual: Node2D = $Visual
+@onready var _hitbox: HitboxComponent = $Hitbox
+@onready var _collision: Area2D = $Collision
 
 var _glow_tween: Tween = null
 var _pre_signal_tween: Tween = null
@@ -34,6 +39,10 @@ func _ready() -> void:
 	attack_type = "ranged_shot"
 	counterable = true
 	set_physics_process(false)
+
+	_hitbox.source = attacker
+	_hitbox.hit_landed.connect(_on_hitbox_hit_landed)
+	_collision.body_entered.connect(_on_terrain_entered)
 
 	_travel_direction = facing_direction.normalized()
 	_has_valid_counter_opportunity = _check_direction_valid() and _check_line_of_sight_valid()
@@ -109,6 +118,8 @@ func _close_counter_window() -> void:
 func _begin_flight() -> void:
 	_is_flying = true
 	set_physics_process(true)
+	_hitbox.set_deferred("monitoring", true)
+	_collision.set_deferred("monitoring", true)
 
 
 func _physics_process(delta: float) -> void:
@@ -118,15 +129,23 @@ func _physics_process(delta: float) -> void:
 	_lifetime_elapsed += delta
 	global_position += _travel_direction * speed * delta
 
-	if target_player and global_position.distance_to(target_player.global_position) < hit_distance:
-		_resolve_hit()
-	elif _lifetime_elapsed >= max_lifetime:
+	if _lifetime_elapsed >= max_lifetime:
 		queue_free()
 
 
-func _resolve_hit() -> void:
+func _on_hitbox_hit_landed(_hurtbox: HurtboxComponent) -> void:
 	print("[Attack] HIT player (not countered) type=%s attacker=%s" % [attack_type, attacker])
+	_despawn()
+
+
+func _on_terrain_entered(body: Node) -> void:
+	print("[Attack] hit terrain(%s), despawn type=%s" % [body.name, attack_type])
+	_despawn()
+
+
+func _despawn() -> void:
 	is_valid = false
+	_hitbox.set_deferred("monitoring", false)
 	queue_free()
 
 

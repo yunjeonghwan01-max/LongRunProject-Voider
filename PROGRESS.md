@@ -225,6 +225,22 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, 실제 렌더러는 Compatibility) �
 - 남은 기존 문제: 장풍 반동(`velocity.x -= recoil`)이 다음 프레임 이동 처리에 덮여 사실상 무효,
   `MeleeAttack`의 `can_attack`/`is_attacking` 중복.
 
+## 타격/피격 파이프라인 (2026-10-11, 브랜치 `feature/hit-pipeline`)
+
+- `combat/components/`: `HitboxComponent` → `HurtboxComponent` → `HealthComponent` 한 경로로 모든 데미지를 처리.
+  사용자 초안(폴링 `check_hits()`, `receive_hit(damage)`)을 시그널 기반 + `receive_hit(damage, source, knockback)`로 확장.
+  Hurtbox에 `invincibility_duration`, Hitbox에 `apply_on_contact`(다단히트용) 추가.
+- 적용: Player/TestEnemy `Combat/Health` + `Combat/Hurtbox`, `MeleeAttack/AttackHitbox`, Windblast/Ranged 투사체 `Hitbox` + `Collision`.
+  TestEnemy `take_damage()` 제거(시그널로 플래시/넉백/사망). `area.owner` 피격 대상 조회와 원거리 거리 판정 제거.
+- 새 동작: **플레이어 피격** (원거리 10 데미지, "HIT" + 플래시, 무적 0.5s), **플레이어 사망** ("DEAD" 후 1초 뒤 씬 재시작),
+  원거리 투사체 **지형 충돌 시 소멸**.
+- 수치 10배 스케일: 플레이어 HP 100, 적 HP 990, 근접 10, 장풍 총 20([7, 7, 6]), 원거리 10.
+- 기존 버그 발견/수정: `monitorable = false`인 Area2D는 TileMap 바디를 감지하지 못해 **장풍의 지형 소멸이 원래 동작하지 않았다**.
+  투사체 `Collision`은 layer 0 + monitorable on으로 둔다.
+- 검증: 입력 주입 하네스로 이전 시나리오 재실행 → 위치/속도/입력 타이밍 동일, 차이는 수치·로그 형식·플레이어 피격뿐.
+  별도 하네스로 무적(같은 프레임 2회째 거부, 0.58s 후 허용), 바닥을 향해 쏜 장풍/원거리의 지형 소멸, HP 10에서 피격 → DEAD → 재시작(HP 100) 확인.
+- 남은 점: 장풍이 다단히트 도중 지형/수명으로 사라지면 남은 히트가 끊긴다(기존과 동일). 피격 넉백 없음(의도). HP UI 없음.
+
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
 - 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현

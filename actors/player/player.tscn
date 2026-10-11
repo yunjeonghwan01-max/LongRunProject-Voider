@@ -3,22 +3,16 @@
 [ext_resource type="Script" uid="uid://dvgad34h8wdq3" path="res://actors/player/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://dbaaf12auyyyr" path="res://assets/characters/player/Voider Player01.png" id="2_ktl23"]
 [ext_resource type="Script" uid="uid://dkm0cbiaqjeox" path="res://camera/camera_shake.gd" id="3_camera_shake"]
+[ext_resource type="Script" uid="uid://d0v7cuhd24gh0" path="res://combat/components/health/health.gd" id="3_ssdk0"]
+[ext_resource type="Script" uid="uid://bx17y8ogjsb4r" path="res://combat/components/hurtbox/hurtbox.gd" id="4_7aotg"]
 [ext_resource type="PackedScene" uid="uid://dq7g3x1v8s2wk" path="res://combat/effects/slash_effect.tscn" id="4_slash_effect"]
 [ext_resource type="PackedScene" uid="uid://bx8h4n2qak1rt" path="res://combat/effects/hit_spark.tscn" id="5_hit_spark"]
 [ext_resource type="PackedScene" uid="uid://c3wq8t2n7yb5x" path="res://actors/player/abilities/windblast/windblast_projectile.tscn" id="6_windblast"]
 [ext_resource type="Script" uid="uid://dtiob8y0mpg0n" path="res://actors/player/status_label.gd" id="7_status_label"]
 [ext_resource type="Script" uid="uid://bgfo5xv3pjidk" path="res://actors/player/abilities/counter/player_counter.gd" id="8_counter"]
+[ext_resource type="Script" uid="uid://ccskgv0c6im1v" path="res://combat/components/hitbox/hitbox.gd" id="9_7aotg"]
 [ext_resource type="Script" uid="uid://v3110wlpdtkj" path="res://actors/player/abilities/melee_attack/melee_attack.gd" id="9_melee_attack"]
 [ext_resource type="Script" uid="uid://byw6yydxr5hp5" path="res://actors/player/abilities/windblast/windblast_ability.gd" id="10_windblast_ability"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
-size = Vector2(24, 48)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
-size = Vector2(24, 48)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_attack_hitbox"]
-size = Vector2(28, 20)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_acav8"]
 animations = [{
@@ -30,6 +24,15 @@ animations = [{
 "name": &"idle",
 "speed": 5.0
 }]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(24, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(24, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_attack_hitbox"]
+size = Vector2(28, 20)
 
 [node name="Player" type="CharacterBody2D" unique_id=914845965]
 collision_layer = 2
@@ -53,10 +56,16 @@ shape = SubResource("RectangleShape2D_body")
 
 [node name="Combat" type="Node2D" parent="." unique_id=1942445295]
 
-[node name="Hurtbox" type="Area2D" parent="Combat" unique_id=1602935517]
+[node name="Health" type="Node" parent="Combat" unique_id=1332950619]
+script = ExtResource("3_ssdk0")
+
+[node name="Hurtbox" type="Area2D" parent="Combat" unique_id=1602935517 node_paths=PackedStringArray("health")]
 collision_layer = 32
 collision_mask = 0
 monitoring = false
+script = ExtResource("4_7aotg")
+health = NodePath("../Health")
+invincibility_duration = 0.5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/Hurtbox" unique_id=1740318862]
 shape = SubResource("RectangleShape2D_hurtbox")
@@ -75,6 +84,7 @@ collision_layer = 8
 collision_mask = 16
 monitoring = false
 monitorable = false
+script = ExtResource("9_7aotg")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/MeleeAttack/AttackHitbox" unique_id=1294814491]
 shape = SubResource("RectangleShape2D_attack_hitbox")
