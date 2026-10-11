@@ -100,6 +100,7 @@ LevelRoot (Node2D)
 ```
 
 런타임 스폰은 생성 주체의 `get_parent()`가 아니라 `LevelContainers.projectiles(self)` / `LevelContainers.effects(self)`로 컨테이너를 찾는다.
+단, Actor에 붙어 다녀야 하는 이펙트(예: 참격 `SlashEffect`)는 컨테이너가 아니라 그 이펙트를 만든 Ability 노드(반전되지 않는 노드)의 자식으로 붙인다. 좌우 반전은 이펙트에 `facing`으로 넘긴다.
 컨테이너가 없으면(Actor 씬 단독 F6 실행 등) 기존 부모로 fallback하고 디버그 실행에서 그룹별로 한 번 경고한다.
 `LevelContainers`는 이 조회만 담당한다. 범용 Level API로 키우지 않는다.
 

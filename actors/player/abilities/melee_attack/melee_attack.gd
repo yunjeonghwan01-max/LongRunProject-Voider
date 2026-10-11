@@ -71,16 +71,18 @@ func _activate_hitbox() -> void:
 
 
 ## 공격 판정이 켜지는 순간, 바라보는 방향으로 보라색 초승달 참격 이펙트를 스폰한다.
+## 레벨 Effects 컨테이너가 아니라 이 노드(Player를 따라 움직이고 스스로는 반전되지 않음)의 자식으로 붙여
+## 이동 중에도 플레이어에 붙어 다니게 한다. 좌우 반전은 SlashEffect.facing으로 전달한다.
 func _spawn_slash_effect() -> void:
 	if not slash_effect_scene:
 		return
 
 	var facing := _player.facing_direction
-	var slash: Node2D = slash_effect_scene.instantiate()
+	var slash: SlashEffect = slash_effect_scene.instantiate()
+	slash.facing = facing
 	slash.rotation = deg_to_rad(-20.0 * facing)
-	slash.scale.x = facing
-	slash.global_position = _player.global_position + Vector2(hitbox_offset * facing, 0.0)
-	LevelContainers.effects(self).add_child(slash)
+	slash.position = Vector2(hitbox_offset * facing, 0.0)
+	add_child(slash)
 
 
 func _deactivate_hitbox() -> void:

@@ -3,6 +3,7 @@ extends Node2D
 
 ## 기본 근접 공격에 맞춰 표시되는 보라색 초승달(크레센트) 참격 이펙트.
 ## 스폰 직후 짧게 확대되며 페이드아웃되는 1회성 연출이며, 재생이 끝나면 스스로 삭제된다.
+## facing(1 = 오른쪽, -1 = 왼쪽)은 add_child 전에 지정한다. 확대 연출 중에도 좌우 반전이 유지된다.
 
 @export var slash_color: Color = Color(0.65, 0.25, 0.95, 0.95)
 @export var radius: float = 34.0
@@ -10,17 +11,19 @@ extends Node2D
 @export var arc_degrees: float = 140.0
 @export var lifetime: float = 0.18
 
+var facing: int = 1
+
 @onready var _polygon: Polygon2D = $Polygon2D
 
 
 func _ready() -> void:
 	_polygon.polygon = _build_crescent_points()
 	_polygon.color = slash_color
-	scale = Vector2(0.5, 0.5)
+	scale = Vector2(0.5 * facing, 0.5)
 
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(self, "scale", Vector2(1.15, 1.15), lifetime) \
+	tween.tween_property(self, "scale", Vector2(1.15 * facing, 1.15), lifetime) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_polygon, "modulate:a", 0.0, lifetime) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
