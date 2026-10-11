@@ -31,7 +31,7 @@ The structure rules (folder responsibilities, file/node naming, Scene Tree vocab
 
 - `app/` — top-level shell (`main.tscn`: current level instance + toolkit). No level content here.
 - `actors/` — things with their own state and behavior: `player/` (incl. `abilities/windblast/`), `enemies/test_enemy/` (incl. `abilities/ranged_attack/`).
-- `combat/` — shared combat language not owned by one actor: `attacks/` (`Attack`, `CounterResult`), `effects/` (`SlashEffect`, `HitSpark`).
+- `combat/` — shared combat language not owned by one actor: `counter/` (`CounterableAttack`, `CounterResult`), `effects/` (`SlashEffect`, `HitSpark`).
 - `world/` — non-actor world objects/resources: `backgrounds/`, `tiles/` (TileSet).
 - `levels/` — playable spaces: `combat_test/combat_test.tscn`, plus `level_containers.gd` (runtime spawn-container lookup).
 - `camera/` — `CameraShake`.
@@ -40,7 +40,7 @@ The structure rules (folder responsibilities, file/node naming, Scene Tree vocab
 - `assets/` — raw source assets: `characters/`, `environment/`, `temporary/` (placeholder/AI-generated art).
 - `addons/godot_mcp/` — Godot MCP editor plugin.
 
-Conventions: a scene and its script share a basename (`player.tscn` + `player.gd`); files are `snake_case`, nodes are `PascalCase`. Move `.uid` (scripts) and `.import` (images) files together with their source file; never hand-edit them.
+Conventions: a scene and its script share a basename (`player.tscn` + `player.gd`); files are `snake_case`, nodes are `PascalCase`. Move `.uid` (scripts) and `.import` (images) files together with their source file; never hand-edit them. Do not hard-code another file's `res://` path in scripts: inherit via `class_name`, and take scenes as `@export var ...: PackedScene` assigned in the `.tscn` (stored by UID, so moves are safe).
 
 ## Architecture
 
@@ -50,7 +50,7 @@ Conventions: a scene and its script share a basename (`player.tscn` + `player.gd
 
 Actors follow the V0 vocabulary: `Visual` (only this flips with facing), `BodyCollision` (the `CollisionShape2D` itself — must be a direct child of the body), `Combat` (`Hurtbox`, `AttackHitbox`, attack timers). Attacks find their target through the hurtbox's `owner` (the actor root); this is a stop-gap until hitbox/hurtbox components exist.
 
-Combat principles to preserve: `Attack.try_counter()` — the attack judges counters itself and succeeds at most once; `RangedAttack` runs Pre-Signal → Counter Window → Flight; `Windblast` pierces with independent per-target multi-hit and distributes total damage; `CameraShake` never lets a weaker request override a stronger active shake.
+Combat principles to preserve: `CounterableAttack.try_counter()` — the attack judges counters itself and succeeds at most once; `RangedAttack` runs Pre-Signal → Counter Window → Flight; `Windblast` pierces with independent per-target multi-hit and distributes total damage; `CameraShake` never lets a weaker request override a stronger active shake.
 
 Physics layers are named in `project.godot` and mirrored as constants in `core/physics/collision_layers.gd` (world, player_body, enemy_body, player_attack, enemy_hurtbox, player_hurtbox, enemy_attack). Bodies mask only `world`; attack areas mask the opposing hurtbox layer.
 

@@ -199,6 +199,15 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, 실제 렌더러는 Compatibility) �
   `Attack`/`CounterResult`는 공용이므로 `combat/attacks/`에 유지. 다른 적도 쓰게 되면 `combat/`으로 다시 올린다.
 - 경로 갱신만 했고 동작 변경 없음. UID 불변.
 
+## 카운터 모듈 정리 / 하드코딩 경로 제거 (2026-10-11, 브랜치 `refactor/counter-module`)
+
+- `combat/attacks/` → `combat/counter/`. `attack.gd`(`Attack`) → `counterable_attack.gd`(`CounterableAttack`).
+  실제로는 "모든 공격의 기반"이 아니라 카운터 가능 공격의 기반이라 이름을 역할에 맞췄다 (Player 근접공격/Windblast는 상속하지 않음).
+- `ranged_attack.gd`의 `extends "res://..."` → `extends CounterableAttack`.
+- `player.gd`(slash_effect/hit_spark/windblast), `test_enemy.gd`(ranged_attack)의 `preload("res://...")` 제거 →
+  `@export var ...: PackedScene` + `.tscn`에서 지정. 미지정 시 `_ready`에서 경고.
+- 동작 변경 없음.
+
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
 - 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현

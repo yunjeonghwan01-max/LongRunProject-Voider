@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ptkfln2kc6as" path="res://actors/enemies/test_enemy/test_enemy.gd" id="1_enemy"]
 [ext_resource type="Texture2D" uid="uid://bcaydmioulg7v" path="res://assets/temporary/ai_generated/enemy.png" id="2_78io2"]
+[ext_resource type="PackedScene" uid="uid://dqj8v2n5x8k7a" path="res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack.tscn" id="3_ranged_attack"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(40, 60)
@@ -23,6 +24,7 @@ animations = [{
 [node name="TestEnemy" type="CharacterBody2D" unique_id=1500168589]
 collision_layer = 4
 script = ExtResource("1_enemy")
+ranged_attack_scene = ExtResource("3_ranged_attack")
 max_health = 99
 
 [node name="Visual" type="Node2D" parent="." unique_id=1360378445]

@@ -3,6 +3,9 @@
 [ext_resource type="Script" uid="uid://dvgad34h8wdq3" path="res://actors/player/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://dbaaf12auyyyr" path="res://assets/characters/player/Voider Player01.png" id="2_ktl23"]
 [ext_resource type="Script" uid="uid://dkm0cbiaqjeox" path="res://camera/camera_shake.gd" id="3_camera_shake"]
+[ext_resource type="PackedScene" uid="uid://dq7g3x1v8s2wk" path="res://combat/effects/slash_effect.tscn" id="4_slash_effect"]
+[ext_resource type="PackedScene" uid="uid://bx8h4n2qak1rt" path="res://combat/effects/hit_spark.tscn" id="5_hit_spark"]
+[ext_resource type="PackedScene" uid="uid://c3wq8t2n7yb5x" path="res://actors/player/abilities/windblast/windblast.tscn" id="6_windblast"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 48)
@@ -27,6 +30,9 @@ animations = [{
 [node name="Player" type="CharacterBody2D" unique_id=914845965]
 collision_layer = 2
 script = ExtResource("1_player")
+slash_effect_scene = ExtResource("4_slash_effect")
+hit_spark_scene = ExtResource("5_hit_spark")
+windblast_scene = ExtResource("6_windblast")
 
 [node name="Visual" type="Node2D" parent="." unique_id=617349398]
 

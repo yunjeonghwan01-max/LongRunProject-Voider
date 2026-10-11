@@ -1,7 +1,7 @@
-class_name Attack
+class_name CounterableAttack
 extends Node2D
 
-## 모든 공격의 공통 상태/판정 기반 클래스.
+## 카운터당할 수 있는 공격의 공통 상태/판정 기반 클래스 (카운터 창, 1회 성공 판정).
 ## 상태 = 변수, 판정 = 함수, 결과 전달 = Signal 원칙을 따른다.
 
 @export var attack_type: String = "generic"

@@ -1,5 +1,5 @@
 class_name RangedAttack
-extends "res://combat/attacks/attack.gd"
+extends CounterableAttack
 
 ## 원거리 counterable attack.
 ## 발동 시점에 방향(내적) + 시야(raycast)를 검사해 counter 후보로 삼을지 결정한다.

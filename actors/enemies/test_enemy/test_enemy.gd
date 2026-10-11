@@ -7,8 +7,7 @@ extends CharacterBody2D
 ##   - BodyCollision: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
 ##   - Combat/Hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
-const RANGED_ATTACK_SCENE := preload("res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack.tscn")
-
+@export var ranged_attack_scene: PackedScene
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
 @export var move_speed = 100
@@ -25,6 +24,8 @@ var _body_original_modulate: Color
 
 func _ready() -> void:
 	health = max_health
+	if ranged_attack_scene == null:
+		push_warning("[TestEnemy] ranged_attack_scene is not assigned in the scene")
 	_attack_timer.wait_time = attack_interval
 	_attack_timer.timeout.connect(_on_attack_timer_timeout)
 	_attack_timer.start()
@@ -85,7 +86,10 @@ func _on_attack_timer_timeout() -> void:
 
 
 func _spawn_ranged_attack(player: Node2D) -> void:
-	var attack: RangedAttack = RANGED_ATTACK_SCENE.instantiate()
+	if ranged_attack_scene == null:
+		return
+
+	var attack: RangedAttack = ranged_attack_scene.instantiate()
 	attack.attacker = self
 	attack.facing_direction = facing_direction
 	attack.target_player = player

@@ -22,13 +22,13 @@ extends CharacterBody2D
 @export var attack_move_speed_scale: float = 1.0
 
 @export_group("Attack Effects")
-@export var slash_effect_scene: PackedScene = preload("res://combat/effects/slash_effect.tscn")
-@export var hit_spark_scene: PackedScene = preload("res://combat/effects/hit_spark.tscn")
+@export var slash_effect_scene: PackedScene
+@export var hit_spark_scene: PackedScene
 @export var attack_hit_shake_strength: float = 1.8
 @export var attack_hit_shake_duration: float = 0.08
 
 @export_group("Windblast Skill")
-@export var windblast_scene: PackedScene = preload("res://actors/player/abilities/windblast/windblast.tscn")
+@export var windblast_scene: PackedScene
 @export var windblast_cooldown: float = 1.5
 @export var windblast_spawn_offset: float = 30.0
 @export var windblast_recoil_speed: float = 60.0  ## 발사 시 플레이어에게 가해지는 아주 작은 반동
@@ -38,7 +38,7 @@ var facing_direction: int = 1
 var is_dashing: bool = false
 var can_dash: bool = true
 
-var active_counter_target: Attack = null
+var active_counter_target: CounterableAttack = null
 var is_in_counter_recovery: bool = false
 var _counter_recovery_elapsed: float = 0.0
 
@@ -60,6 +60,9 @@ func _ready() -> void:
 	_update_attack_hitbox_position()
 	if _attack_hitbox:
 		_attack_hitbox.area_entered.connect(_on_attack_hitbox_area_entered)
+	for scene_name in ["slash_effect_scene", "hit_spark_scene", "windblast_scene"]:
+		if get(scene_name) == null:
+			push_warning("[Player] %s is not assigned in the scene" % scene_name)
 
 
 func _physics_process(delta: float) -> void:
@@ -117,14 +120,14 @@ func _update_attack_hitbox_position() -> void:
 		_attack_hitbox.position.x = attack_hitbox_offset * facing_direction
 
 
-## Attack이 counter window를 여는 시점에 스스로를 등록한다.
-func set_counter_target(attack: Attack) -> void:
+## CounterableAttack이 counter window를 여는 시점에 스스로를 등록한다.
+func set_counter_target(attack: CounterableAttack) -> void:
 	active_counter_target = attack
 	_show_status("!", Color(1, 0.9, 0.2, 1), 0.0)
 
 
-## Attack이 counter window를 닫거나 무효화될 때 스스로를 해제한다.
-func clear_counter_target(attack: Attack) -> void:
+## CounterableAttack이 counter window를 닫거나 무효화될 때 스스로를 해제한다.
+func clear_counter_target(attack: CounterableAttack) -> void:
 	if active_counter_target == attack:
 		active_counter_target = null
 		if _status_label and _status_label.text == "!":

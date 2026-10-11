@@ -19,7 +19,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 |---|---|---|
 | `app/` | 게임 최상위 Shell. Level 콘텐츠를 직접 두지 않는다 | `main.tscn`, `main.gd` |
 | `actors/` | 자기 상태를 가지고 행동하는 존재 | `player/`, `enemies/test_enemy/` |
-| `combat/` | Player/Enemy 어느 한쪽에 종속되지 않는 **공용 전투 언어** | `attacks/`, `effects/` |
+| `combat/` | Player/Enemy 어느 한쪽에 종속되지 않는 **공용 전투 언어** | `counter/`, `effects/` |
 | `world/` | 살아 있지 않은 World Object / World 리소스 | `backgrounds/`, `tiles/` |
 | `levels/` | 실제 게임 공간 | `combat_test/`, `level_containers.gd` |
 | `camera/` | Camera 공용 기능 | `camera_shake.gd` |
@@ -39,7 +39,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 
 - **누가 / 왜** 이 공격을 쓰는가 → `actors/<actor>/abilities/` (예: Player 고유 `Windblast`, TestEnemy 고유 `RangedAttack`)
   - 사용처가 하나뿐이면 그 Actor 아래에 둔다. 두 번째 사용처가 실제로 생기면 그때 `combat/`으로 올린다 (복제하지 않는다 — `class_name` 중복)
-- 공격과 피격 **자체가 어떻게** 작동하는가 → `combat/` (예: `Attack.try_counter()`, `CounterResult`)
+- 공격과 피격 **자체가 어떻게** 작동하는가 → `combat/` (예: `CounterableAttack.try_counter()`, `CounterResult`)
 - Raw 이미지/오디오 → `assets/`, 그것을 사용하는 Godot 리소스(`.tres`)는 사용하는 쪽 (예: TileSet → `world/tiles/`)
 
 ---
@@ -50,6 +50,7 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 - 파일/폴더명은 `snake_case`. (`X.tscn.gd` 규칙은 폐기)
 - `.uid` 파일은 Godot이 관리한다. 스크립트를 옮길 때는 `.uid`도 함께 옮기고, 손으로 편집하지 않는다.
 - 이미지를 옮길 때는 `.import`도 함께 옮긴다 (UID 유지). Asset 파일명 자체는 불필요하게 바꾸지 않는다.
+- 스크립트에 다른 파일의 `res://` 경로를 직접 쓰지 않는다. 상속은 `class_name`으로(`extends CounterableAttack`), Scene 참조는 `@export var ...: PackedScene`으로 받고 값은 `.tscn`에서 지정한다 (UID로 저장되어 파일 이동에 안전).
 
 ## 3. 노드 명명
 
@@ -151,7 +152,7 @@ Windblast (Area2D)                            actors/player/abilities/windblast/
 ├── CollisionShape2D                          layer player_attack, mask world + enemy_hurtbox
 └── Visual └ Polygon2D
 
-RangedAttack (Node2D, extends Attack)         actors/enemies/test_enemy/abilities/ranged_attack/
+RangedAttack (Node2D, extends CounterableAttack) actors/enemies/test_enemy/abilities/ranged_attack/
 └── Visual └ Polygon2D
 
 SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/
