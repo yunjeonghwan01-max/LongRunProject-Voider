@@ -37,8 +37,9 @@ Godot 엔진의 실제 제약이 이 문서와 충돌하면 **엔진 제약이 �
 
 ### 판단 기준
 
-- **누가 / 왜** 이 공격을 쓰는가 → `actors/<actor>/abilities/` (예: Player 고유 `Windblast`)
-- 공격과 피격 **자체가 어떻게** 작동하는가 → `combat/` (예: `Attack.try_counter()`, `RangedAttack`)
+- **누가 / 왜** 이 공격을 쓰는가 → `actors/<actor>/abilities/` (예: Player 고유 `Windblast`, TestEnemy 고유 `RangedAttack`)
+  - 사용처가 하나뿐이면 그 Actor 아래에 둔다. 두 번째 사용처가 실제로 생기면 그때 `combat/`으로 올린다 (복제하지 않는다 — `class_name` 중복)
+- 공격과 피격 **자체가 어떻게** 작동하는가 → `combat/` (예: `Attack.try_counter()`, `CounterResult`)
 - Raw 이미지/오디오 → `assets/`, 그것을 사용하는 Godot 리소스(`.tres`)는 사용하는 쪽 (예: TileSet → `world/tiles/`)
 
 ---
@@ -150,7 +151,7 @@ Windblast (Area2D)                            actors/player/abilities/windblast/
 ├── CollisionShape2D                          layer player_attack, mask world + enemy_hurtbox
 └── Visual └ Polygon2D
 
-RangedAttack (Node2D, extends Attack)         combat/attacks/ranged_attack.tscn
+RangedAttack (Node2D, extends Attack)         actors/enemies/test_enemy/abilities/ranged_attack/
 └── Visual └ Polygon2D
 
 SlashEffect / HitSpark (Node2D) └ Polygon2D   combat/effects/

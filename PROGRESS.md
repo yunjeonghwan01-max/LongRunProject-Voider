@@ -192,6 +192,13 @@ IBBD Prototype Base 스캐폴드(Godot 4.7, 실제 렌더러는 Compatibility) �
 `VOIDER_STRUCTURE_REFACTOR_V0.md` §7 참고 (Camera 분리, 디버그 노드 자리, Projectile preset 완화,
 `area.owner` 제거, `CurrentLevel` 삽입 지점 재검토).
 
+## RangedAttack 위치 이동 (2026-10-11, 브랜치 `refactor/move-ranged-attack-to-test-enemy`)
+
+- `combat/attacks/ranged_attack.*` → `actors/enemies/test_enemy/abilities/ranged_attack/`.
+  사용처가 TestEnemy 하나뿐인 적 전용 공격이라 Windblast와 같은 기준(누가/왜 쓰는가)으로 Actor 아래에 둔다.
+  `Attack`/`CounterResult`는 공용이므로 `combat/attacks/`에 유지. 다른 적도 쓰게 되면 `combat/`으로 다시 올린다.
+- 경로 갱신만 했고 동작 변경 없음. UID 불변.
+
 ## 다음에 이어서 볼 것
 - 현재 방향: 카운터만 계속 미세튜닝하지 않고 실제 전투 환경을 만들며 검증한다.
 - 완료: TileMap 기반 전투 테스트 플랫폼 환경 구축, 플레이어 대쉬 구현

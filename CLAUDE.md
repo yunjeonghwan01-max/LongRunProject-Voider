@@ -30,8 +30,8 @@ There are no automated tests in this repo.
 The structure rules (folder responsibilities, file/node naming, Scene Tree vocabulary, engine-constraint exceptions) are defined in **`VOIDER_STRUCTURE_REFACTOR_V0.md`**. Follow it when adding files or nodes, and update it when the structure changes.
 
 - `app/` — top-level shell (`main.tscn`: current level instance + toolkit). No level content here.
-- `actors/` — things with their own state and behavior: `player/` (incl. `abilities/windblast/`), `enemies/test_enemy/`.
-- `combat/` — shared combat language not owned by one actor: `attacks/` (`Attack`, `CounterResult`, `RangedAttack`), `effects/` (`SlashEffect`, `HitSpark`).
+- `actors/` — things with their own state and behavior: `player/` (incl. `abilities/windblast/`), `enemies/test_enemy/` (incl. `abilities/ranged_attack/`).
+- `combat/` — shared combat language not owned by one actor: `attacks/` (`Attack`, `CounterResult`), `effects/` (`SlashEffect`, `HitSpark`).
 - `world/` — non-actor world objects/resources: `backgrounds/`, `tiles/` (TileSet).
 - `levels/` — playable spaces: `combat_test/combat_test.tscn`, plus `level_containers.gd` (runtime spawn-container lookup).
 - `camera/` — `CameraShake`.

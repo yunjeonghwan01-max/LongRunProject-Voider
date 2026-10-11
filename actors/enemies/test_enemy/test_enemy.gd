@@ -7,7 +7,7 @@ extends CharacterBody2D
 ##   - BodyCollision: 지형 전용 바디 (layer ENEMY_BODY, mask WORLD) → 플레이어와는 부딪히지 않는다.
 ##   - Combat/Hurtbox (Area2D): 피격 트리거 (layer ENEMY_HURTBOX) → 플레이어 공격 판정만 받는다.
 
-const RANGED_ATTACK_SCENE := preload("res://combat/attacks/ranged_attack.tscn")
+const RANGED_ATTACK_SCENE := preload("res://actors/enemies/test_enemy/abilities/ranged_attack/ranged_attack.tscn")
 
 @export var attack_interval: float = 2.5
 @export var facing_direction: Vector2 = Vector2.LEFT
