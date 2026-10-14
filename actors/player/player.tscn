@@ -100,12 +100,19 @@ projectile_scene = ExtResource("6_windblast")
 
 [node name="DashSlash" type="Node2D" parent="Combat" unique_id=1848591122]
 script = ExtResource("12_k67x5")
+slash_effect_scene = ExtResource("4_slash_effect")
 
 [node name="SlashHitbox" type="Area2D" parent="Combat/DashSlash" unique_id=211875930]
+position = Vector2(28, 0)
+collision_layer = 8
+collision_mask = 16
+monitoring = false
+monitorable = false
+script = ExtResource("9_7aotg")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/DashSlash/SlashHitbox" unique_id=1311430116]
-position = Vector2(38.5, 0)
 shape = SubResource("RectangleShape2D_dfdtf")
+disabled = true
 
 [node name="Camera" type="Camera2D" parent="." unique_id=394439694]
 zoom = Vector2(2, 2)

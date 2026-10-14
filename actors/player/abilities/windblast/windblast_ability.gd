@@ -22,7 +22,7 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if Input.is_action_just_pressed("player_skill1") and can_use:
+	if Input.is_action_just_pressed("player_skill1") and can_use and not _player.is_dashing:
 		_fire()
 
 

@@ -31,6 +31,7 @@ var can_dash: bool = true
 @onready var _visual: Node2D = $Visual
 @onready var _counter: PlayerCounter = $Combat/Counter
 @onready var _melee_attack: MeleeAttack = $Combat/MeleeAttack
+@onready var _dash_slash: DashSlash = $Combat/DashSlash
 @onready var _hurtbox: HurtboxComponent = $Combat/Hurtbox
 @onready var _health: HealthComponent = $Combat/Health
 
@@ -55,6 +56,8 @@ func _physics_process(delta: float) -> void:
 		var move_speed := speed
 		if _melee_attack.is_attacking:
 			move_speed *= _melee_attack.move_speed_scale
+		if _dash_slash.is_attacking:
+			move_speed *= _dash_slash.move_speed_scale
 		if direction != 0.0:
 			velocity.x = direction * move_speed
 			_set_facing_direction(int(sign(direction)))
@@ -74,6 +77,7 @@ func _set_facing_direction(new_direction: int) -> void:
 	if _visual:
 		_visual.scale.x = facing_direction
 	_melee_attack.update_facing(facing_direction)
+	_dash_slash.update_facing(facing_direction)
 
 
 ## CounterableAttack이 counter window를 열고 닫을 때 호출하는 Player 쪽 진입점. 실제 처리는 Combat/Counter.
