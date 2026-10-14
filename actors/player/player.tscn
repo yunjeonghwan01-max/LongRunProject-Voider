@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://ccskgv0c6im1v" path="res://combat/components/hitbox/hitbox.gd" id="9_7aotg"]
 [ext_resource type="Script" uid="uid://v3110wlpdtkj" path="res://actors/player/abilities/melee_attack/melee_attack.gd" id="9_melee_attack"]
 [ext_resource type="Script" uid="uid://byw6yydxr5hp5" path="res://actors/player/abilities/windblast/windblast_ability.gd" id="10_windblast_ability"]
+[ext_resource type="Script" uid="uid://cpevpa5apkmhg" path="res://actors/player/abilities/dash_slash/dash_slash.gd" id="12_k67x5"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_acav8"]
 animations = [{
@@ -33,6 +34,9 @@ size = Vector2(24, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_attack_hitbox"]
 size = Vector2(28, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dfdtf"]
+size = Vector2(49, 24)
 
 [node name="Player" type="CharacterBody2D" unique_id=914845965]
 collision_layer = 2
@@ -93,6 +97,15 @@ disabled = true
 [node name="WindblastAbility" type="Node" parent="Combat" unique_id=208914749]
 script = ExtResource("10_windblast_ability")
 projectile_scene = ExtResource("6_windblast")
+
+[node name="DashSlash" type="Node2D" parent="Combat" unique_id=1848591122]
+script = ExtResource("12_k67x5")
+
+[node name="SlashHitbox" type="Area2D" parent="Combat/DashSlash" unique_id=211875930]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Combat/DashSlash/SlashHitbox" unique_id=1311430116]
+position = Vector2(38.5, 0)
+shape = SubResource("RectangleShape2D_dfdtf")
 
 [node name="Camera" type="Camera2D" parent="." unique_id=394439694]
 zoom = Vector2(2, 2)
